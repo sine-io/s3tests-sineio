@@ -1,0 +1,53 @@
+[DEFAULT]
+## this section is just used for host, port and bucket_prefix
+host = x.x.x.x
+## S3 port
+port = xx
+## username, password, port for ssh connection
+## sun node of the cluster is better.
+ssh_user = root
+ssh_passwd = xxxx
+ssh_port = 22
+
+
+## say "False" to disable TLS
+is_secure = False
+## say "False" to disable SSL Verify
+ssl_verify = False
+
+[fixtures]
+## all the buckets created will start with this prefix;
+## {random} will be filled with random characters to pad
+## the prefix to 30 characters long, and avoid collisions
+bucket prefix = ess-{random}-
+
+[s3 main]
+display_name = mainuser
+user_id = mainuser
+email = mainuser@example.com
+
+# zonegroup api_name for bucket location
+api_name = zg-1647582137
+
+## main AWS access key
+access_key = main
+## main AWS secret key
+secret_key = main
+
+## replace with key id obtained when secret is created
+kms_keyid = 01234567-89ab-cdef-0123-456789abcdef
+#kms_keyid2 = 01234567-89ab-cdef-0123-456789abcdef
+
+## Storage classes
+storage_classes = "ARCHIVE, GLACIER"
+
+## Lifecycle debug interval (default: 10)
+lc_debug_interval = 20
+
+[s3 alt]
+display_name = altuser
+user_id = altuser
+email = altuser@example.com
+
+access_key = alt
+secret_key = alt
