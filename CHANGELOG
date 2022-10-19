@@ -1,0 +1,15 @@
+
+
+ S3TESTS-SINEIO 0.0.0.2(sine 2022.10.19)
+------------------------------------
+- 7: Regenerate requirements.txt
+- 6: add git flow
+- 5: add run.sh and run_without_rp.sh
+- 4: Rename README.rst to README.md and rewrite it.
+- 3: add .gitignore, pytest.ini.SAMPLE.
+- 2: change ess to sio.
+
+
+ S3TESTS-SINEIO 0.0.0.1(sine 2022.07.11)
+------------------------------------
+- 1: change nose to pytest.

@@ -1,14 +1,14 @@
 
 import pytest
 
-from s3tests_pytest.functional.policy import make_json_policy
-from s3tests_pytest.tests import (
+from s3tests.functional.policy import make_json_policy
+from s3tests.tests import (
     TestBaseClass, ClientError, assert_raises, get_client, get_alt_client)
 
 
+@pytest.mark.sio
 class TestPolicyAclMixin(TestBaseClass):
 
-    @pytest.mark.ess
     def test_bucket_policy_acl(self, s3cfg_global_unique):
         """
         测试-验证Policy和ACL共同作用；
@@ -35,7 +35,6 @@ class TestPolicyAclMixin(TestBaseClass):
         client.delete_bucket_policy(Bucket=bucket_name)
         client.put_bucket_acl(Bucket=bucket_name, ACL='public-read')
 
-    @pytest.mark.ess
     def test_bucket_v2_policy_acl(self, s3cfg_global_unique):
         """
         测试-验证Policy和ACL共同作用（使用list_objects_v2）；
@@ -62,7 +61,6 @@ class TestPolicyAclMixin(TestBaseClass):
         client.delete_bucket_policy(Bucket=bucket_name)
         client.put_bucket_acl(Bucket=bucket_name, ACL='public-read')
 
-    @pytest.mark.ess
     def test_bucket_policy_put_obj_grant(self, s3cfg_global_unique):
         """
         测试-验证put obj with amz-grant back to bucket-owner

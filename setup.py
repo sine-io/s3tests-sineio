@@ -3,15 +3,15 @@ from setuptools import setup, find_packages
 
 
 setup(
-    name='s3tests-pytest',
-    version='1.0.0',
+    name='s3tests-sineio',
+    version='0.0.0.1',
     packages=find_packages(exclude=['contrib', 'docs', 'tests', 'build', 'dist']),
 
     author='sine',
     author_email='sinecelia.wang@gmail.com',
-    maintainer='sine.wang',
+    maintainer='sine',
     maintainer_email='sinecelia.wang@gmail.com',
-    url='https://github.com/kisscelia/s3tests-pytest',
+    url='https://github.com/sine-io/s3tests-sineio.git',
     description='Unofficial Amazon AWS S3 compatibility tests',
     license='MIT',
     keywords='s3 pytest testing',

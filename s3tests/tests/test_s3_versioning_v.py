@@ -1,6 +1,6 @@
 import pytest
 
-from s3tests_pytest.tests import TestBaseClass, assert_raises, ClientError, get_client
+from s3tests.tests import TestBaseClass, assert_raises, ClientError, get_client
 
 
 class TestVersioningBase(TestBaseClass):
@@ -71,9 +71,9 @@ class TestVersioningBase(TestBaseClass):
             self.check_obj_versions(client, bucket_name, key, version_ids, contents)
 
 
+@pytest.mark.sio
 class TestVersioning(TestVersioningBase):
 
-    @pytest.mark.ess
     def test_versioning_bucket_create_suspend(self, s3cfg_global_unique):
         """
         测试-验证can create and suspend bucket versioning
@@ -88,7 +88,6 @@ class TestVersioning(TestVersioningBase):
         self.check_configure_versioning_retry(client, bucket_name, "Enabled", "Enabled")
         self.check_configure_versioning_retry(client, bucket_name, "Suspended", "Suspended")
 
-    @pytest.mark.ess
     def test_versioning_obj_list_marker(self, s3cfg_global_unique):
         """
         测试-验证list_object_versions是否正确
@@ -147,7 +146,6 @@ class TestVersioning(TestVersioningBase):
             self.check_obj_content(client, bucket_name, key, version['VersionId'], contents[j])
             i += 1
 
-    @pytest.mark.ess
     def test_versioning_copy_obj_version(self, s3cfg_global_unique):
         """
         测试-验证多版本和copy_object结合
@@ -188,7 +186,6 @@ class TestVersioning(TestVersioningBase):
         body = self.get_body(response)
         self.eq(body, contents[-1])
 
-    @pytest.mark.ess
     def test_bucket_list_return_data_versioning(self, s3cfg_global_unique):
         """
         测试-验证list_object_versions的响应中各个字段符合预期
@@ -229,7 +226,6 @@ class TestVersioning(TestVersioningBase):
             self.eq(obj['VersionId'], key_data['VersionId'])
             self.compare_dates(obj['LastModified'], key_data['LastModified'])
 
-    @pytest.mark.ess
     def test_object_copy_versioned_bucket(self, s3cfg_global_unique):
         """
         测试-验证copy object to/from versioned bucket
@@ -295,7 +291,6 @@ class TestVersioning(TestVersioningBase):
         self.eq(data_str, body)
         self.eq(size, response['ContentLength'])
 
-    @pytest.mark.ess
     def test_object_copy_versioned_url_encoding(self, s3cfg_global_unique):
         """
         测试-验证copy object to/from versioned bucket with url-encoded name
@@ -314,7 +309,6 @@ class TestVersioning(TestVersioningBase):
         dst.copy_from(CopySource={'Bucket': src.bucket_name, 'Key': src.key, 'VersionId': src.version_id})
         dst.load()  # HEAD request tests that the key exists
 
-    @pytest.mark.ess
     def test_versioning_obj_create_read_remove(self, s3cfg_global_unique):
         """
         测试-验证can create access and remove appropriate versions
@@ -333,7 +327,6 @@ class TestVersioning(TestVersioningBase):
         self.create_remove_versions(client, bucket_name, key, num_versions, 4, -1)
         self.create_remove_versions(client, bucket_name, key, num_versions, 3, 3)
 
-    @pytest.mark.ess
     def test_versioning_obj_create_read_remove_head(self, s3cfg_global_unique):
         """
         测试-验证create and remove versioned object and head
@@ -372,7 +365,6 @@ class TestVersioning(TestVersioningBase):
 
         self.clean_up_bucket(client, bucket_name, key, version_ids)
 
-    @pytest.mark.ess
     def test_versioning_obj_plain_null_version_removal(self, s3cfg_global_unique):
         """
         测试-验证create object, then switch to versioning
@@ -396,7 +388,6 @@ class TestVersioning(TestVersioningBase):
         response = client.list_object_versions(Bucket=bucket_name)
         self.eq(('Versions' in response), False)
 
-    @pytest.mark.ess
     def test_versioning_obj_plain_null_version_overwrite(self, s3cfg_global_unique):
         """
         测试-验证开启多版本的存储桶中，删除VersionId为null的多版本对象是否符合预期
@@ -434,7 +425,6 @@ class TestVersioning(TestVersioningBase):
         response = client.list_object_versions(Bucket=bucket_name)
         self.eq(('Versions' in response), False)
 
-    @pytest.mark.ess
     def test_versioning_obj_plain_null_version_overwrite_suspended(self, s3cfg_global_unique):
         """
         测试-验证暂停多版本的存储桶中，删除VersionId为null的多版本对象是否符合预期
@@ -470,7 +460,6 @@ class TestVersioning(TestVersioningBase):
         response = client.list_object_versions(Bucket=bucket_name)
         self.eq(('Versions' in response), False)
 
-    @pytest.mark.ess
     def test_versioning_obj_suspend_versions(self, s3cfg_global_unique):
         """
         测试-验证暂停多版本后，进行多版本对象操作
@@ -1195,7 +1184,6 @@ class TestVersioning(TestVersioningBase):
                        'VersionId': 'VVY-uC27gaYGmJ5sNhsFY1LY0bX42SP'}]}
         """
 
-    @pytest.mark.ess
     def test_versioning_obj_create_versions_remove_all(self, s3cfg_global_unique):
         """
         测试-验证删除多版本接口符合预期
@@ -1215,7 +1203,6 @@ class TestVersioning(TestVersioningBase):
         self.eq(len(version_ids), 0)
         self.eq(len(version_ids), len(contents))
 
-    @pytest.mark.ess
     def test_versioning_obj_create_versions_remove_special_names(self, s3cfg_global_unique):
         """
         测试-验证多版本和特殊对象名称（_, :, ' '）结合
@@ -1236,7 +1223,6 @@ class TestVersioning(TestVersioningBase):
             self.eq(len(version_ids), 0)
             self.eq(len(version_ids), len(contents))
 
-    @pytest.mark.ess
     def test_versioning_multi_object_delete(self, s3cfg_global_unique):
         """
         测试-验证多次删除多版本对象，依旧成功（幂等特性）
@@ -1268,7 +1254,6 @@ class TestVersioning(TestVersioningBase):
         response = client.list_object_versions(Bucket=bucket_name)
         self.eq(('Versions' in response), False)
 
-    @pytest.mark.ess
     def test_versioning_multi_object_delete_with_marker(self, s3cfg_global_unique):
         """
         测试-验证删除对象（使用deleteMarker）
@@ -1313,7 +1298,6 @@ class TestVersioning(TestVersioningBase):
         self.eq(('Versions' in response), False)
         self.eq(('DeleteMarkers' in response), False)
 
-    @pytest.mark.ess
     def test_versioning_multi_object_delete_with_marker_create(self, s3cfg_global_unique):
         """
         测试-验证删除对象时不带VersionId，会给对象添加DeleteMarkers标签
@@ -1335,7 +1319,6 @@ class TestVersioning(TestVersioningBase):
         self.eq(delete_marker_version_id, delete_markers[0]['VersionId'])
         self.eq(key, delete_markers[0]['Key'])
 
-    @pytest.mark.ess
     def test_versioned_concurrent_object_create_concurrent_remove(self, s3cfg_global_unique):
         """
         测试-验证并发上传多版本对象和并发删除多版本对象
@@ -1363,7 +1346,6 @@ class TestVersioning(TestVersioningBase):
             response = client.list_object_versions(Bucket=bucket_name)
             self.eq(('Versions' in response), False)
 
-    @pytest.mark.ess
     def test_versioned_concurrent_object_create_and_remove(self, s3cfg_global_unique):
         """
         测试-验证并发上传多版本对象后进行删除
@@ -1393,7 +1375,6 @@ class TestVersioning(TestVersioningBase):
         t = self.do_clear_versioned_bucket_concurrent(client, self.do_remove_ver, bucket_name)
         self.do_wait_completion(t)
 
-    @pytest.mark.ess
     def test_versioning_bucket_atomic_upload_return_version_id(self, s3cfg_global_unique):
         """
         测试-验证多版本开启和暂停时，上传的对象VersionId是否正确
@@ -1425,7 +1406,6 @@ class TestVersioning(TestVersioningBase):
         response = client.put_object(Bucket=bucket_name, Key=key)
         self.eq(('VersionId' in response), False)
 
-    @pytest.mark.ess
     def test_object_copy_versioning_multipart_upload(self, s3cfg_global_unique):
         """
         测试-验证分段上传，多版本，拷贝对象
@@ -1514,7 +1494,6 @@ class TestVersioning(TestVersioningBase):
         self.eq(key1_metadata, response['Metadata'])
         self.eq(content_type, response['ContentType'])
 
-    @pytest.mark.ess
     def test_multipart_copy_versioned(self, s3cfg_global_unique):
         """
         测试-验证upload_part_copy和多版本
@@ -1549,7 +1528,6 @@ class TestVersioning(TestVersioningBase):
             self.eq(size, response['ContentLength'])
             self.check_key_content(client, src_key, src_bucket_name, dest_key, dest_bucket_name, version_id=vid)
 
-    @pytest.mark.ess
     def test_versioning_obj_create_overwrite_multipart(self, s3cfg_global_unique):
         """
         测试-验证分段上传多版本的对象
@@ -1581,7 +1559,6 @@ class TestVersioning(TestVersioningBase):
         self.eq(len(version_ids), 0)
         self.eq(len(version_ids), len(contents))
 
-    @pytest.mark.ess
     def test_versioning_bucket_multipart_upload_return_version_id(self, s3cfg_global_unique):
         """
         测试-验证多版本的对象在complete_multipart_upload操作时会返回VersionId

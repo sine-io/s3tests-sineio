@@ -3,7 +3,7 @@ from munch import Munch
 
 import pytest
 
-from s3tests_pytest.tests import (
+from s3tests.tests import (
     nuke_prefixed_buckets, logger, get_client, get_alt_client
 )
 

@@ -15,6 +15,10 @@ from py.xml import html
 
 from munch import Munch
 
+import logging
+
+from reportportal_client import RPLogger
+
 
 # -------------------------------------------- DO NOT MODIFY ------------------------------------------------ #
 CONFTEST_PATH = Path(os.path.abspath(__file__)).parent  # will return abs path of conftest.py
@@ -220,3 +224,13 @@ def pytest_html_results_table_html(report, data):
         data.append(html.div("No log output captured.", class_="empty log"))
 
 # -------------------------------------------- Enhancing report end ---------------------------- #
+
+
+# -------------------------------------------- reportprotal start ---------------------------- #
+@pytest.fixture(scope="session")
+def rp_logger():
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.DEBUG)
+    logging.setLoggerClass(RPLogger)
+    return logger
+# -------------------------------------------- reportprotal end ---------------------------- #

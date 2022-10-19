@@ -9,7 +9,7 @@ from fabric import Connection
 
 
 BASE_PATH = Path(os.path.abspath(__file__)).parent  # will return abs path of bootstrap.py
-CFG_PATH = Path(BASE_PATH, 's3tests_pytest/s3tests.conf')
+CFG_PATH = Path(BASE_PATH, 's3tests/s3tests.conf')
 
 s3cfg = RawConfigParser()
 s3cfg.read(CFG_PATH)

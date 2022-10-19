@@ -4,11 +4,11 @@ import datetime
 import pytest
 import requests
 
-from s3tests_pytest.tests import TestBaseClass, get_client
-from s3tests_pytest.functional.s3_sigv4 import AWS4SignerForAuthorizationHeader
+from s3tests.tests import TestBaseClass, get_client
+from s3tests.functional.s3_sigv4 import AWS4SignerForAuthorizationHeader
 
 
-@pytest.mark.ess
+@pytest.mark.sio
 class TestSamples(TestBaseClass):
 
     def test_abort_multipart_upload(self, s3cfg_global_unique):
@@ -131,6 +131,3 @@ class TestSamples(TestBaseClass):
         """
         测试-验证complete multipart upload, entity too small.
         """
-
-
-

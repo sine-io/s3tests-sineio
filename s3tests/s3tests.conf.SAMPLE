@@ -1,12 +1,12 @@
 [DEFAULT]
 ## this section is just used for host, port and bucket_prefix
-host = x.x.x.x
+host = xx.xx.xx.xx
 ## S3 port
-port = xx
+port = 7480
 ## username, password, port for ssh connection
 ## sun node of the cluster is better.
-ssh_user = root
-ssh_passwd = xxxx
+ssh_user = xxx
+ssh_passwd = xxx
 ssh_port = 22
 
 
@@ -19,7 +19,7 @@ ssl_verify = False
 ## all the buckets created will start with this prefix;
 ## {random} will be filled with random characters to pad
 ## the prefix to 30 characters long, and avoid collisions
-bucket prefix = ess-{random}-
+bucket prefix = sio-{random}-
 
 [s3 main]
 display_name = mainuser

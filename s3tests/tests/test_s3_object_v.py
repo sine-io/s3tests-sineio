@@ -13,7 +13,7 @@ from collections import OrderedDict
 import requests
 import pytest
 
-from s3tests_pytest.tests import (
+from s3tests.tests import (
     TestBaseClass, ClientError,
     assert_raises, FakeWriteFile,
     FakeReadFile, get_client, get_alt_client, get_unauthenticated_client
@@ -196,9 +196,9 @@ class TestObjectBase(TestBaseClass):
         self.verify_atomic_key_data(client, bucket_name, obj_name, file_size, 'B')
 
 
+@pytest.mark.sio
 class TestObjectOpts(TestObjectBase):
 
-    @pytest.mark.ess
     def test_bucket_list_return_data(self, s3cfg_global_unique):
         """
         测试-验证list_objects返回值中ETag、Size、Owner-DisplayName、Owner-ID、LastModified符合预期
@@ -232,7 +232,6 @@ class TestObjectOpts(TestObjectBase):
             self.eq(obj['Owner']['ID'], key_data['ID'])
             self.compare_dates(obj['LastModified'], key_data['LastModified'])
 
-    @pytest.mark.ess
     def test_object_write_to_non_exist_bucket(self, s3cfg_global_unique):
         """
         测试-验证向不存在的存储桶上传对象，
@@ -248,7 +247,6 @@ class TestObjectOpts(TestObjectBase):
         self.eq(status, 404)
         self.eq(error_code, 'NoSuchBucket')
 
-    @pytest.mark.ess
     def test_object_read_not_exist(self, s3cfg_global_unique):
         """
         测试-验证对不存在的对象进行get_object操作，
@@ -263,7 +261,6 @@ class TestObjectOpts(TestObjectBase):
         self.eq(status, 404)
         self.eq(error_code, 'NoSuchKey')
 
-    @pytest.mark.ess
     def test_object_request_id_matches_header_on_error(self, s3cfg_global_unique):
         """
         测试-验证错误响应头中会返回RequestId
@@ -297,7 +294,6 @@ class TestObjectOpts(TestObjectBase):
     # in the response.
     # Note that if the object specified in the request is not found, Amazon S3 returns the result as deleted.
 
-    @pytest.mark.ess
     def test_multi_object_delete(self, s3cfg_global_unique):
         """
         测试-验证delete_objects 并和 list_objects相结合
@@ -324,7 +320,6 @@ class TestObjectOpts(TestObjectBase):
         response = client.list_objects(Bucket=bucket_name)
         assert 'Contents' not in response
 
-    @pytest.mark.ess
     def test_multi_object_v2_delete(self, s3cfg_global_unique):
         """
         测试-验证delete_objects 并和 list_objects_v2相结合
@@ -351,7 +346,6 @@ class TestObjectOpts(TestObjectBase):
         response = client.list_objects_v2(Bucket=bucket_name)
         assert 'Contents' not in response
 
-    @pytest.mark.ess
     def test_multi_object_delete_key_limit(self, s3cfg_global_unique):
         """
         测试-验证delete_objects每次最多删除1000个对象，并和list_objects结合
@@ -372,7 +366,6 @@ class TestObjectOpts(TestObjectBase):
         status, error_code = self.get_status_and_error_code(e.response)
         self.eq(status, 400)
 
-    @pytest.mark.ess
     def test_multi_object_v2_delete_key_limit(self, s3cfg_global_unique):
         """
         测试-验证delete_objects每次最多删除1000个对象，并和list_objects_v2结合
@@ -395,7 +388,6 @@ class TestObjectOpts(TestObjectBase):
 
     # ------------------------- DeleteObjects End ------------------------------
 
-    @pytest.mark.ess
     def test_object_head_zero_bytes(self, s3cfg_global_unique):
         """
         测试-验证上传 0 字节的对象，
@@ -408,7 +400,6 @@ class TestObjectOpts(TestObjectBase):
         response = client.head_object(Bucket=bucket_name, Key='foo')
         self.eq(response['ContentLength'], 0)
 
-    @pytest.mark.ess
     def test_object_write_check_etag(self, s3cfg_global_unique):
         """
         测试-验证对象上传并验证ETag只是否正确
@@ -419,7 +410,6 @@ class TestObjectOpts(TestObjectBase):
         self.eq(response['ResponseMetadata']['HTTPStatusCode'], 200)
         self.eq(response['ETag'], '"37b51d194a7513e45b56f6524f2d51f2"')
 
-    @pytest.mark.ess
     def test_object_write_cache_control(self, s3cfg_global_unique):
         """
         测试-验证put-object的CacheControl参数
@@ -434,7 +424,6 @@ class TestObjectOpts(TestObjectBase):
         response = client.head_object(Bucket=bucket_name, Key='foo')
         self.eq(response['ResponseMetadata']['HTTPHeaders']['cache-control'], cache_control)
 
-    @pytest.mark.ess
     def test_object_write_expires(self, s3cfg_global_unique):
         """
         测试-验证put-object的Expires参数
@@ -451,7 +440,6 @@ class TestObjectOpts(TestObjectBase):
         response = client.head_object(Bucket=bucket_name, Key='foo')
         self.compare_dates(expires, response['Expires'])
 
-    @pytest.mark.ess
     def test_object_write_read_update_read_delete(self, s3cfg_global_unique):
         """
         测试-验证对象基本操作：上传，获取，覆盖写，删除
@@ -474,7 +462,6 @@ class TestObjectOpts(TestObjectBase):
         # Delete
         client.delete_object(Bucket=bucket_name, Key='foo')
 
-    @pytest.mark.ess
     def test_object_metadata_replaced_on_put(self, s3cfg_global_unique):
         """
         测试-验证对象自定义元数据在对象覆盖写的过程中也会被覆盖
@@ -490,7 +477,6 @@ class TestObjectOpts(TestObjectBase):
         got = response['Metadata']
         self.eq(got, {})
 
-    @pytest.mark.ess
     def test_object_write_file(self, s3cfg_global_unique):
         """
         测试-验证put-object方法的Body参数中使用二进制
@@ -504,7 +490,6 @@ class TestObjectOpts(TestObjectBase):
         body = self.get_body(response)
         self.eq(body, 'bar')
 
-    @pytest.mark.ess
     def test_object_anon_put(self, s3cfg_global_unique):
         """
         测试-验证未认证用户对已存在的对象进行覆盖写，
@@ -520,7 +505,6 @@ class TestObjectOpts(TestObjectBase):
         self.eq(status, 403)
         self.eq(error_code, 'AccessDenied')
 
-    @pytest.mark.ess
     def test_object_put_authenticated(self, s3cfg_global_unique):
         """
         测试-验证认证用户上传对象（默认桶ACLs）
@@ -531,7 +515,6 @@ class TestObjectOpts(TestObjectBase):
         response = client.put_object(Bucket=bucket_name, Key='foo', Body='foo')
         self.eq(response['ResponseMetadata']['HTTPStatusCode'], 200)
 
-    @pytest.mark.ess
     def test_object_raw_put_authenticated_expired(self, s3cfg_global_unique):
         """
         验证预签名时间过期时，是否可以上传对象，
@@ -549,7 +532,6 @@ class TestObjectOpts(TestObjectBase):
         res = requests.put(url, data="foo", verify=s3cfg_global_unique.default_ssl_verify).__dict__
         self.eq(res['status_code'], 403)
 
-    @pytest.mark.ess
     def test_100_continue(self, s3cfg_global_unique):
         """
         测试-验证100-continue，
@@ -577,7 +559,6 @@ class TestObjectOpts(TestObjectBase):
         status = self.simple_http_req_100_cont(host, port, is_secure, 'PUT', resource)
         self.eq(status, '100')
 
-    @pytest.mark.ess
     def test_ranged_request_response_code(self, s3cfg_global_unique):
         """
         测试-验证get-object的range读取，PASSED
@@ -595,7 +576,6 @@ class TestObjectOpts(TestObjectBase):
         self.eq(response['ResponseMetadata']['HTTPHeaders']['content-range'], 'bytes 4-7/11')
         self.eq(response['ResponseMetadata']['HTTPStatusCode'], 206)
 
-    @pytest.mark.ess
     def test_ranged_big_request_response_code(self, s3cfg_global_unique):
         """
         测试-验证get-object的range读取（大数据块），PASSED
@@ -613,7 +593,6 @@ class TestObjectOpts(TestObjectBase):
         self.eq(response['ResponseMetadata']['HTTPHeaders']['content-range'], 'bytes 3145728-5242880/8388608')
         self.eq(response['ResponseMetadata']['HTTPStatusCode'], 206)
 
-    @pytest.mark.ess
     def test_ranged_request_skip_leading_bytes_response_code(self, s3cfg_global_unique):
         """
         测试-验证Range参数的值为：'bytes=x-'
@@ -631,7 +610,6 @@ class TestObjectOpts(TestObjectBase):
         self.eq(response['ResponseMetadata']['HTTPHeaders']['content-range'], 'bytes 4-10/11')
         self.eq(response['ResponseMetadata']['HTTPStatusCode'], 206)
 
-    @pytest.mark.ess
     def test_ranged_request_return_trailing_bytes_response_code(self, s3cfg_global_unique):
         """
         测试-验证Range参数的值为：'bytes=-x'
@@ -649,7 +627,6 @@ class TestObjectOpts(TestObjectBase):
         self.eq(response['ResponseMetadata']['HTTPHeaders']['content-range'], 'bytes 4-10/11')
         self.eq(response['ResponseMetadata']['HTTPStatusCode'], 206)
 
-    @pytest.mark.ess
     def test_ranged_request_invalid_range(self, s3cfg_global_unique):
         """
         测试-验证Range参数的值为无效的（超过了本身的content长度），
@@ -668,7 +645,6 @@ class TestObjectOpts(TestObjectBase):
         self.eq(status, 416)
         self.eq(error_code, 'InvalidRange')
 
-    @pytest.mark.ess
     def test_ranged_request_empty_object(self, s3cfg_global_unique):
         """
         测试-验证获取空对象的时候，使用Range参数的值为无效的（超过了本身的content长度），
@@ -687,8 +663,8 @@ class TestObjectOpts(TestObjectBase):
         self.eq(status, 416)
         self.eq(error_code, 'InvalidRange')
 
-    @pytest.mark.ess
-    @pytest.mark.fails_on_ess  # TODO: results in a 404 instead of 400 on the RGW
+    @pytest.mark.sio
+    @pytest.mark.fails_on_sio  # TODO: results in a 404 instead of 400 on the RGW
     def test_object_read_unreadable(self, s3cfg_global_unique):
         """
         测试-验证下载不存在的对象，
@@ -704,51 +680,45 @@ class TestObjectOpts(TestObjectBase):
         # self.eq(e.response['Error']['Message'], 'Couldn\'t parse the specified URI.')
 
 
+@pytest.mark.sio
 class TestAtomicWriteAndRead(TestObjectBase):
 
-    @pytest.mark.ess
     def test_atomic_read_1mb(self, s3cfg_global_unique):
         """
         测试-验证原子读取 - 1MB对象
         """
         self.atomic_read(s3cfg_global_unique, 1024 * 1024)
 
-    @pytest.mark.ess
     def test_atomic_read_4mb(self, s3cfg_global_unique):
         """
         测试-验证原子读取 - 4MB对象
         """
         self.atomic_read(s3cfg_global_unique, 1024 * 1024 * 4)
 
-    @pytest.mark.ess
     def test_atomic_read_8mb(self, s3cfg_global_unique):
         """
         测试-验证原子读取 - 8MB对象
         """
         self.atomic_read(s3cfg_global_unique, 1024 * 1024 * 8)
 
-    @pytest.mark.ess
     def test_atomic_write_1mb(self, s3cfg_global_unique):
         """
         测试-验证原子写入 - 1MB对象
         """
         self.atomic_write(s3cfg_global_unique, 1024 * 1024)
 
-    @pytest.mark.ess
     def test_atomic_write_4mb(self, s3cfg_global_unique):
         """
         测试-验证原子写入 - 4MB对象
         """
         self.atomic_write(s3cfg_global_unique, 1024 * 1024 * 4)
 
-    @pytest.mark.ess
     def test_atomic_write_8mb(self, s3cfg_global_unique):
         """
         测试-验证原子写入 - 8MB对象
         """
         self.atomic_write(s3cfg_global_unique, 1024 * 1024 * 8)
 
-    @pytest.mark.ess
     def test_atomic_dual_write_1mb(self, s3cfg_global_unique):
         """
         测试-验证原子写入（同时写） - 1MB对象，
@@ -756,7 +726,6 @@ class TestAtomicWriteAndRead(TestObjectBase):
         """
         self.atomic_dual_write(s3cfg_global_unique, 1024 * 1024)
 
-    @pytest.mark.ess
     def test_atomic_dual_write_4mb(self, s3cfg_global_unique):
         """
         测试-验证原子写入（同时写） - 4MB对象，
@@ -764,7 +733,6 @@ class TestAtomicWriteAndRead(TestObjectBase):
         """
         self.atomic_dual_write(s3cfg_global_unique, 1024 * 1024 * 4)
 
-    @pytest.mark.ess
     def test_atomic_dual_write_8mb(self, s3cfg_global_unique):
         """
         测试-验证原子写入（同时写） - 8MB对象，
@@ -772,14 +740,12 @@ class TestAtomicWriteAndRead(TestObjectBase):
         """
         self.atomic_dual_write(s3cfg_global_unique, 1024 * 1024 * 8)
 
-    @pytest.mark.ess
     def test_atomic_conditional_write_1mb(self, s3cfg_global_unique):
         """
         测试-验证原子写入 - 1MB对象
         """
         self.atomic_conditional_write(s3cfg_global_unique, 1024 * 1024)
 
-    @pytest.mark.ess
     def test_atomic_dual_conditional_write_1mb(self, s3cfg_global_unique):
         """
         测试-验证原子写入 - 1MB对象，
@@ -787,8 +753,7 @@ class TestAtomicWriteAndRead(TestObjectBase):
         """
         self.atomic_dual_conditional_write(s3cfg_global_unique, 1024 * 1024)
 
-    @pytest.mark.fails_on_ess  # TODO: test not passing with SSL, fix this
-    @pytest.mark.ess
+    @pytest.mark.fails_on_sio  # TODO: test not passing with SSL, fix this
     def test_atomic_write_bucket_gone(self, s3cfg_global_unique):
         """
         测试-验证往不存在的桶内原子写，
@@ -902,7 +867,7 @@ class TestObjectNameRules(TestObjectBase):
             </Delete>
     """
 
-    @pytest.mark.ess
+    @pytest.mark.sio
     def test_bucket_create_special_key_names(self, s3cfg_global_unique):
         """
         测试-验证对象名字使用特殊字符是否成功
@@ -935,12 +900,12 @@ class TestObjectNameRules(TestObjectBase):
             client.put_object_acl(Bucket=bucket_name, Key=name, ACL='private')  # maybe unnecessary, i think.
 
 
+@pytest.mark.sio
 class TestCopyObject(TestObjectBase):
     """
     https://docs.aws.amazon.com/zh_cn/AmazonS3/latest/API/API_CopyObject.html
     """
 
-    @pytest.mark.ess
     def test_object_copy_zero_size(self, s3cfg_global_unique):
         """
         测试-验证在同一个存储桶中拷贝0字节的对象
@@ -957,7 +922,6 @@ class TestCopyObject(TestObjectBase):
         response = client.get_object(Bucket=bucket_name, Key='bar321foo')
         self.eq(response['ContentLength'], 0)
 
-    @pytest.mark.ess
     def test_object_copy_same_bucket(self, s3cfg_global_unique):
         """
         测试-验证在同一个存储桶中拷贝对象(非0字节)
@@ -974,7 +938,6 @@ class TestCopyObject(TestObjectBase):
         body = self.get_body(response)
         self.eq('foo', body)
 
-    @pytest.mark.ess
     def test_object_copy_verify_content_type(self, s3cfg_global_unique):
         """
         测试-验证成功拷贝对象的ContentType跟源对象一致
@@ -995,7 +958,6 @@ class TestCopyObject(TestObjectBase):
         response_content_type = response['ContentType']
         self.eq(response_content_type, content_type)
 
-    @pytest.mark.ess
     def test_object_copy_to_itself(self, s3cfg_global_unique):
         """
         测试-验证自拷贝对象（不操作元数据）；
@@ -1012,7 +974,6 @@ class TestCopyObject(TestObjectBase):
         self.eq(status, 400)
         self.eq(error_code, 'InvalidRequest')
 
-    @pytest.mark.ess
     def test_object_copy_to_itself_with_metadata(self, s3cfg_global_unique):
         """
         测试-验证自拷贝对象（覆盖写元数据信息）- PASSED
@@ -1031,7 +992,6 @@ class TestCopyObject(TestObjectBase):
         response = client.get_object(Bucket=bucket_name, Key='foo123bar')
         self.eq(response['Metadata'], metadata)
 
-    @pytest.mark.ess
     def test_object_copy_diff_bucket(self, s3cfg_global_unique):
         """
         测试-验证跨桶拷贝对象
@@ -1050,7 +1010,6 @@ class TestCopyObject(TestObjectBase):
         body = self.get_body(response)
         self.eq('foo', body)
 
-    @pytest.mark.ess
     def test_object_copy_not_owned_bucket(self, s3cfg_global_unique):
         """
         测试-验证跨用户拷贝，
@@ -1071,7 +1030,6 @@ class TestCopyObject(TestObjectBase):
         status, error_code = self.get_status_and_error_code(e.response)
         self.eq(status, 403)
 
-    @pytest.mark.ess
     def test_object_copy_canned_acl(self, s3cfg_global_unique):
         """
         测试-验证拷贝对象的时候，赋予public-read权限
@@ -1094,7 +1052,6 @@ class TestCopyObject(TestObjectBase):
         # check ACL is applied by doing GET from another user
         alt_client.get_object(Bucket=bucket_name, Key='foo123bar')
 
-    @pytest.mark.ess
     def test_object_copy_retaining_metadata(self, s3cfg_global_unique):
         """
         测试-验证拷贝对象（保留源对象的metadata）
@@ -1116,7 +1073,6 @@ class TestCopyObject(TestObjectBase):
             self.eq(metadata, response['Metadata'])
             self.eq(size, response['ContentLength'])
 
-    @pytest.mark.ess
     def test_object_copy_replacing_metadata(self, s3cfg_global_unique):
         """
         测试-验证拷贝对象（覆盖写metadata）
@@ -1142,7 +1098,6 @@ class TestCopyObject(TestObjectBase):
             self.eq(metadata, response['Metadata'])
             self.eq(size, response['ContentLength'])
 
-    @pytest.mark.ess
     def test_object_copy_bucket_not_found(self, s3cfg_global_unique):
         """
         测试-验证对不存在的桶进行对象拷贝，
@@ -1156,7 +1111,6 @@ class TestCopyObject(TestObjectBase):
         status = self.get_status(e.response)
         self.eq(status, 404)
 
-    @pytest.mark.ess
     def test_object_copy_key_not_found(self, s3cfg_global_unique):
         """
         测试-验证对不存在的对象进行拷贝，
@@ -1170,7 +1124,6 @@ class TestCopyObject(TestObjectBase):
         status = self.get_status(e.response)
         self.eq(status, 404)
 
-    @pytest.mark.ess
     def test_copy_object_if_match_good(self, s3cfg_global_unique):
         """
         测试-验证copy-object接口的CopySourceIfMatch参数（x-amz-copy-source-if-match: the latest ETag'），
@@ -1187,8 +1140,7 @@ class TestCopyObject(TestObjectBase):
         body = self.get_body(response)
         self.eq(body, 'bar')
 
-    @pytest.mark.ess
-    @pytest.mark.fails_on_ess  # TODO: remove fails_on_rgw when https://tracker.ceph.com/issues/40808 is resolved
+    @pytest.mark.fails_on_sio  # TODO: remove fails_on_rgw when https://tracker.ceph.com/issues/40808 is resolved
     @pytest.mark.xfail(reason="预期：不匹配的ETag会返回错误，ceph有bug", run=True, strict=True)
     def test_copy_object_if_match_failed(self, s3cfg_global_unique):
         """
@@ -1205,8 +1157,7 @@ class TestCopyObject(TestObjectBase):
         self.eq(status, 412)
         self.eq(error_code, 'PreconditionFailed')
 
-    @pytest.mark.ess
-    @pytest.mark.fails_on_ess  # TODO: remove fails_on_rgw when https://tracker.ceph.com/issues/40808 is resolved
+    @pytest.mark.fails_on_sio  # TODO: remove fails_on_rgw when https://tracker.ceph.com/issues/40808 is resolved
     @pytest.mark.xfail(reason="预期：不匹配的ETag会返回错误，ceph有bug", run=True, strict=True)
     def test_copy_object_if_none_match_good(self, s3cfg_global_unique):
         """
@@ -1223,7 +1174,6 @@ class TestCopyObject(TestObjectBase):
         self.eq(status, 412)
         self.eq(error_code, 'PreconditionFailed')
 
-    @pytest.mark.ess
     def test_copy_object_if_none_match_failed(self, s3cfg_global_unique):
         """
         测试-验证copy-object接口的CopySourceIfMatch参数（x-amz-copy-source-if-none-match: 不匹配的 ETag'），
@@ -1240,6 +1190,7 @@ class TestCopyObject(TestObjectBase):
         self.eq(body, 'bar')
 
 
+@pytest.mark.sio
 class TestPresignedURLs(TestObjectBase):
     """
     All objects and buckets are private by default.
@@ -1258,7 +1209,6 @@ class TestPresignedURLs(TestObjectBase):
             Then, generate a presigned URL using AWS Signature Version 4.
     """
 
-    @pytest.mark.ess
     def test_object_raw_get_x_amz_expires_not_expired(self, s3cfg_global_unique):
         """
         测试-验证对象预签名在未过期时可以通过HTTP的GET请求直接下载
@@ -1273,7 +1223,6 @@ class TestPresignedURLs(TestObjectBase):
         res = requests.get(url, verify=s3cfg_global_unique.default_ssl_verify).__dict__
         self.eq(res['status_code'], 200)
 
-    @pytest.mark.ess
     def test_object_raw_get_x_amz_expires_out_range_zero(self, s3cfg_global_unique):
         """
         测试-验证对象预签名在时间过期后不可以通过HTTP的GET请求直接下载，
@@ -1288,7 +1237,6 @@ class TestPresignedURLs(TestObjectBase):
         res = requests.get(url, verify=s3cfg_global_unique.default_ssl_verify).__dict__
         self.eq(res['status_code'], 403)
 
-    @pytest.mark.ess
     def test_object_raw_get_x_amz_expires_out_max_range(self, s3cfg_global_unique):
         """
         测试-验证对象预签名的过期时间超过最大值（7天），
@@ -1304,7 +1252,6 @@ class TestPresignedURLs(TestObjectBase):
         res = requests.get(url, verify=s3cfg_global_unique.default_ssl_verify).__dict__
         self.eq(res['status_code'], 403)
 
-    @pytest.mark.ess
     def test_object_raw_get_x_amz_expires_out_positive_range(self, s3cfg_global_unique):
         """
         测试-验证对象预签名的过期时间为负值的时候是否符合预期，
@@ -1320,6 +1267,7 @@ class TestPresignedURLs(TestObjectBase):
         self.eq(res['status_code'], 403)
 
 
+@pytest.mark.sio
 class TestGetObjectParameters(TestObjectBase):
     """
     https://docs.aws.amazon.com/zh_cn/AmazonS3/latest/API/API_GetObject.html
@@ -1327,8 +1275,6 @@ class TestGetObjectParameters(TestObjectBase):
 
     # IfMatch: Return the object only if its entity tag (ETag) is the same as the one specified;
     #   otherwise, return a 412 (precondition failed) error.
-
-    @pytest.mark.ess
     def test_get_object_if_match_good(self, s3cfg_global_unique):
         """
         测试-验证get_object方法中的IfMatch参数（etag跟获取对象的etag相等）
@@ -1342,7 +1288,6 @@ class TestGetObjectParameters(TestObjectBase):
         body = self.get_body(response)
         self.eq(body, 'bar')
 
-    @pytest.mark.ess
     def test_get_object_if_match_failed(self, s3cfg_global_unique):
         """
         测试-验证get_object方法中的IfMatch参数（设置错误的参数，返回412）
@@ -1359,7 +1304,6 @@ class TestGetObjectParameters(TestObjectBase):
     # If-None-Match: Return the object only if its entity tag (ETag) is different from the one specified;
     #   otherwise, return a 304 (not modified) error.
 
-    @pytest.mark.ess
     def test_get_object_if_none_match_good(self, s3cfg_global_unique):
         """
         测试-验证get_object方法中的IfNoneMatch参数（设置为获取对象的etag，返回304）
@@ -1374,7 +1318,6 @@ class TestGetObjectParameters(TestObjectBase):
         self.eq(status, 304)
         self.eq(e.response['Error']['Message'], 'Not Modified')
 
-    @pytest.mark.ess
     def test_get_object_if_none_match_failed(self, s3cfg_global_unique):
         """
         测试-验证get_object方法中的IfNoneMatch参数（设置为不匹配的值，正确获取对象）
@@ -1390,7 +1333,6 @@ class TestGetObjectParameters(TestObjectBase):
     # If-Modified-Since: Return the object only if it has been modified since the specified time;
     #   otherwise, return a 304 (not modified) error.
 
-    @pytest.mark.ess
     def test_get_object_if_modified_since_good(self, s3cfg_global_unique):
         """
         测试-验证get_object方法中的IfModifiedSince参数（设置一个过去时间，验证通过）
@@ -1403,7 +1345,6 @@ class TestGetObjectParameters(TestObjectBase):
         body = self.get_body(response)
         self.eq(body, 'bar')
 
-    @pytest.mark.ess
     def test_get_object_if_modified_since_failed(self, s3cfg_global_unique):
         """
         测试-验证get_object方法中的IfModifiedSince参数（设置一个将来时间，验证失败，返回304）
@@ -1430,7 +1371,6 @@ class TestGetObjectParameters(TestObjectBase):
     # If-Unmodified-Since: Return the object only if it has not been modified since the specified time;
     #   otherwise, return a 412 (precondition failed) error.
 
-    @pytest.mark.ess
     def test_get_object_if_unmodified_since_good(self, s3cfg_global_unique):
         """
         测试-验证get_object方法中的IfUnmodifiedSince参数（设置一个过去时间，验证失败，返回412 PreconditionFailed）
@@ -1445,7 +1385,6 @@ class TestGetObjectParameters(TestObjectBase):
         self.eq(status, 412)
         self.eq(error_code, 'PreconditionFailed')
 
-    @pytest.mark.ess
     def test_get_object_if_unmodified_since_failed(self, s3cfg_global_unique):
         """
         测试-验证get_object方法中的IfUnmodifiedSince参数（设置一个将来时间，验证成功获取对象）
@@ -1461,8 +1400,8 @@ class TestGetObjectParameters(TestObjectBase):
         self.eq(body, 'bar')
 
 
-@pytest.mark.ess
-# @pytest.mark.ess_maybe
+@pytest.mark.sio
+# @pytest.mark.sio_maybe
 class TestRegisterHeadersBeforePutObject(TestObjectBase):
     """
     https://docs.aws.amazon.com/zh_cn/AmazonS3/latest/API/API_PutObject.html
@@ -1648,6 +1587,7 @@ class TestRegisterHeadersBeforePutObject(TestObjectBase):
         self.eq(body, 'bar')
 
 
+@pytest.mark.sio
 class TestBrowserBasedUploadsUsingPost(TestObjectBase):
     # Authenticating Requests in Browser-Based Uploads Using POST (AWS Signature Version 4)
     """
@@ -1864,7 +1804,6 @@ class TestBrowserBasedUploadsUsingPost(TestObjectBase):
         Required: No
     """
 
-    @pytest.mark.ess
     def test_post_object_anonymous_request(self, s3cfg_global_unique):
         """
         测试-验证匿名用户使用Post请求上传对象,
@@ -1886,7 +1825,6 @@ class TestBrowserBasedUploadsUsingPost(TestObjectBase):
         body = self.get_body(response)
         self.eq(body, 'bar')
 
-    @pytest.mark.ess
     def test_post_object_authenticated_request(self, s3cfg_global_unique):
         """
         测试-验证已认证用户使用Post请求上传对象,
@@ -1927,7 +1865,6 @@ class TestBrowserBasedUploadsUsingPost(TestObjectBase):
         body = self.get_body(response)
         self.eq(body, 'bar')
 
-    @pytest.mark.ess
     def test_post_object_authenticated_no_content_type(self, s3cfg_global_unique):
         """
         测试-验证已认证用户使用Post请求上传对象(no content-type header),
@@ -1968,7 +1905,6 @@ class TestBrowserBasedUploadsUsingPost(TestObjectBase):
         body = self.get_body(response)
         self.eq(body, 'bar')
 
-    @pytest.mark.ess
     def test_post_object_authenticated_request_bad_access_key(self, s3cfg_global_unique):
         """
         测试-验证已认证用户使用Post请求上传对象(bad access key),
@@ -2006,7 +1942,6 @@ class TestBrowserBasedUploadsUsingPost(TestObjectBase):
         r = requests.post(url, files=payload, verify=s3cfg_global_unique.default_ssl_verify)
         self.eq(r.status_code, 403)
 
-    @pytest.mark.ess
     def test_post_object_set_success_code(self, s3cfg_global_unique):
         """
         测试-验证匿名用户使用Post请求上传对象, 设置成功的success code
@@ -2026,7 +1961,6 @@ class TestBrowserBasedUploadsUsingPost(TestObjectBase):
         message = self.ele_tree.fromstring(r.content).find('Key')
         self.eq(message.text, 'foo.txt')
 
-    @pytest.mark.ess
     def test_post_object_set_invalid_success_code(self, s3cfg_global_unique):
         """
         测试-验证匿名用户使用Post请求上传对象, 设置无效的success code
@@ -2046,7 +1980,6 @@ class TestBrowserBasedUploadsUsingPost(TestObjectBase):
         content = r.content.decode()
         self.eq(content, '')
 
-    @pytest.mark.ess
     def test_post_object_upload_larger_than_chunk(self, s3cfg_global_unique):
         """
         测试-验证已认证用户使用Post请求上传对象，0B≤content-length-range≤5MiB；
@@ -2089,7 +2022,6 @@ class TestBrowserBasedUploadsUsingPost(TestObjectBase):
         body = self.get_body(response)
         self.eq(body, foo_string)
 
-    @pytest.mark.ess
     def test_post_object_set_key_from_filename(self, s3cfg_global_unique):
         """
         测试-验证已认证用户使用Post请求上传对象，通过filename参数设置key
@@ -2129,7 +2061,6 @@ class TestBrowserBasedUploadsUsingPost(TestObjectBase):
         body = self.get_body(response)
         self.eq(body, 'bar')
 
-    @pytest.mark.ess
     def test_post_object_ignored_header(self, s3cfg_global_unique):
         """
         测试-验证已认证用户使用Post请求上传对象，设置被忽略的请求头
@@ -2166,7 +2097,6 @@ class TestBrowserBasedUploadsUsingPost(TestObjectBase):
         r = requests.post(url, files=payload, verify=s3cfg_global_unique.default_ssl_verify)
         self.eq(r.status_code, 204)
 
-    @pytest.mark.ess
     def test_post_object_case_insensitive_condition_fields(self, s3cfg_global_unique):
         """
         测试-验证已认证用户使用Post请求上传对象，各字段是否大小写敏感
@@ -2203,7 +2133,6 @@ class TestBrowserBasedUploadsUsingPost(TestObjectBase):
         r = requests.post(url, files=payload, verify=s3cfg_global_unique.default_ssl_verify)
         self.eq(r.status_code, 204)
 
-    @pytest.mark.ess
     def test_post_object_escaped_field_values(self, s3cfg_global_unique):
         """
         测试-验证已认证用户使用Post请求上传对象，测试转义字符（将 $ 进行转义）
@@ -2243,7 +2172,6 @@ class TestBrowserBasedUploadsUsingPost(TestObjectBase):
         body = self.get_body(response)
         self.eq(body, 'bar')
 
-    @pytest.mark.ess
     def test_post_object_success_redirect_action(self, s3cfg_global_unique):
         """
         测试-验证已认证用户使用Post请求上传对象，测试 success_action_redirect
@@ -2290,7 +2218,6 @@ class TestBrowserBasedUploadsUsingPost(TestObjectBase):
         etag = response['ETag'].strip('"')
         self.eq(url, f'{redirect_url}?bucket={bucket_name}&key={"foo.txt"}&etag=%22{etag}%22')
 
-    @pytest.mark.ess
     def test_post_object_invalid_signature(self, s3cfg_global_unique):
         """
         测试-验证已认证用户使用Post请求上传对象，使用无效的signature
@@ -2328,7 +2255,6 @@ class TestBrowserBasedUploadsUsingPost(TestObjectBase):
         r = requests.post(url, files=payload, verify=s3cfg_global_unique.default_ssl_verify)
         self.eq(r.status_code, 403)
 
-    @pytest.mark.ess
     def test_post_object_invalid_access_key(self, s3cfg_global_unique):
         """
         测试-验证已认证用户使用Post请求上传对象，使用无效的accessKey
@@ -2365,7 +2291,6 @@ class TestBrowserBasedUploadsUsingPost(TestObjectBase):
         r = requests.post(url, files=payload, verify=s3cfg_global_unique.default_ssl_verify)
         self.eq(r.status_code, 403)
 
-    @pytest.mark.ess
     def test_post_object_invalid_date_format(self, s3cfg_global_unique):
         """
         测试-验证已认证用户使用Post请求上传对象，使用无效的日期格式
@@ -2402,7 +2327,6 @@ class TestBrowserBasedUploadsUsingPost(TestObjectBase):
         r = requests.post(url, files=payload, verify=s3cfg_global_unique.default_ssl_verify)
         self.eq(r.status_code, 400)
 
-    @pytest.mark.ess
     def test_post_object_no_key_specified(self, s3cfg_global_unique):
         """
         测试-验证已认证用户使用Post请求上传对象，不设置key参数
@@ -2438,7 +2362,6 @@ class TestBrowserBasedUploadsUsingPost(TestObjectBase):
         r = requests.post(url, files=payload, verify=s3cfg_global_unique.default_ssl_verify)
         self.eq(r.status_code, 400)
 
-    @pytest.mark.ess
     def test_post_object_missing_signature(self, s3cfg_global_unique):
         """
         测试-验证已认证用户使用Post请求上传对象，不设置signature参数
@@ -2472,7 +2395,6 @@ class TestBrowserBasedUploadsUsingPost(TestObjectBase):
         r = requests.post(url, files=payload, verify=s3cfg_global_unique.default_ssl_verify)
         self.eq(r.status_code, 400)
 
-    @pytest.mark.ess
     def test_post_object_missing_policy_condition(self, s3cfg_global_unique):
         """
         测试-验证已认证用户使用Post请求上传对象，policy的condition缺少bucket参数
@@ -2509,7 +2431,6 @@ class TestBrowserBasedUploadsUsingPost(TestObjectBase):
         r = requests.post(url, files=payload, verify=s3cfg_global_unique.default_ssl_verify)
         self.eq(r.status_code, 403)
 
-    @pytest.mark.ess
     def test_post_object_user_specified_header(self, s3cfg_global_unique):
         """
         测试-验证已认证用户使用Post请求上传对象，policy的starts-with参数结合header使用
@@ -2549,7 +2470,6 @@ class TestBrowserBasedUploadsUsingPost(TestObjectBase):
         response = client.get_object(Bucket=bucket_name, Key='foo.txt')
         self.eq(response['Metadata']['foo'], 'barclamp')
 
-    @pytest.mark.ess
     def test_post_object_request_missing_policy_specified_field(self, s3cfg_global_unique):
         """
         测试-验证已认证用户使用Post请求上传对象，policy的starts-with参数结合header使用（header未设置相关请求头）
@@ -2587,7 +2507,6 @@ class TestBrowserBasedUploadsUsingPost(TestObjectBase):
         r = requests.post(url, files=payload, verify=s3cfg_global_unique.default_ssl_verify)
         self.eq(r.status_code, 403)
 
-    @pytest.mark.ess
     def test_post_object_condition_is_case_sensitive(self, s3cfg_global_unique):
         """
         测试-验证已认证用户使用Post请求上传对象，policy中的conditions是大小写敏感的
@@ -2624,7 +2543,6 @@ class TestBrowserBasedUploadsUsingPost(TestObjectBase):
         r = requests.post(url, files=payload, verify=s3cfg_global_unique.default_ssl_verify)
         self.eq(r.status_code, 400)
 
-    @pytest.mark.ess
     def test_post_object_expires_is_case_sensitive(self, s3cfg_global_unique):
         """
         测试-验证已认证用户使用Post请求上传对象，policy中的expiration是大小写敏感的
@@ -2661,7 +2579,6 @@ class TestBrowserBasedUploadsUsingPost(TestObjectBase):
         r = requests.post(url, files=payload, verify=s3cfg_global_unique.default_ssl_verify)
         self.eq(r.status_code, 400)
 
-    @pytest.mark.ess
     def test_post_object_expired_policy(self, s3cfg_global_unique):
         """
         测试-验证已认证用户使用Post请求上传对象，使用过期的policy
@@ -2698,7 +2615,6 @@ class TestBrowserBasedUploadsUsingPost(TestObjectBase):
         r = requests.post(url, files=payload, verify=s3cfg_global_unique.default_ssl_verify)
         self.eq(r.status_code, 403)
 
-    @pytest.mark.ess
     def test_post_object_invalid_request_field_value(self, s3cfg_global_unique):
         """
         测试-验证已认证用户使用Post请求上传对象，conditions里使用精确匹配（验证不匹配的情况）
@@ -2735,7 +2651,6 @@ class TestBrowserBasedUploadsUsingPost(TestObjectBase):
         r = requests.post(url, files=payload, verify=s3cfg_global_unique.default_ssl_verify)
         self.eq(r.status_code, 403)
 
-    @pytest.mark.ess
     def test_post_object_missing_expires_condition(self, s3cfg_global_unique):
         """
         测试-验证已认证用户使用Post请求上传对象，policy中缺少expiration必选字段
@@ -2770,7 +2685,6 @@ class TestBrowserBasedUploadsUsingPost(TestObjectBase):
         r = requests.post(url, files=payload, verify=s3cfg_global_unique.default_ssl_verify)
         self.eq(r.status_code, 400)
 
-    @pytest.mark.ess
     def test_post_object_missing_conditions_list(self, s3cfg_global_unique):
         """
         测试-验证已认证用户使用Post请求上传对象，policy中缺少conditions列表
@@ -2799,7 +2713,6 @@ class TestBrowserBasedUploadsUsingPost(TestObjectBase):
         r = requests.post(url, files=payload, verify=s3cfg_global_unique.default_ssl_verify)
         self.eq(r.status_code, 400)
 
-    @pytest.mark.ess
     def test_post_object_upload_size_limit_exceeded(self, s3cfg_global_unique):
         """
         测试-验证已认证用户使用Post请求上传对象，content-length-range设置为0，验证是否无法上传
@@ -2836,7 +2749,6 @@ class TestBrowserBasedUploadsUsingPost(TestObjectBase):
         r = requests.post(url, files=payload, verify=s3cfg_global_unique.default_ssl_verify)
         self.eq(r.status_code, 400)
 
-    @pytest.mark.ess
     def test_post_object_missing_content_length_argument(self, s3cfg_global_unique):
         """
         测试-验证已认证用户使用Post请求上传对象，content-length-range设置错误（不设置最大值或最小值）
@@ -2873,7 +2785,6 @@ class TestBrowserBasedUploadsUsingPost(TestObjectBase):
         r = requests.post(url, files=payload, verify=s3cfg_global_unique.default_ssl_verify)
         self.eq(r.status_code, 400)
 
-    @pytest.mark.ess
     def test_post_object_invalid_content_length_argument(self, s3cfg_global_unique):
         """
         测试-验证已认证用户使用Post请求上传对象，content-length-range设置错误（最小值设置为-1，最大值设置为0）
@@ -2910,7 +2821,6 @@ class TestBrowserBasedUploadsUsingPost(TestObjectBase):
         r = requests.post(url, files=payload, verify=s3cfg_global_unique.default_ssl_verify)
         self.eq(r.status_code, 400)
 
-    @pytest.mark.ess
     def test_post_object_upload_size_below_minimum(self, s3cfg_global_unique):
         """
         测试-验证已认证用户使用Post请求上传对象，对象大小小于content-length-range的最小值
@@ -2947,7 +2857,6 @@ class TestBrowserBasedUploadsUsingPost(TestObjectBase):
         r = requests.post(url, files=payload, verify=s3cfg_global_unique.default_ssl_verify)
         self.eq(r.status_code, 400)
 
-    @pytest.mark.ess
     def test_post_object_empty_conditions(self, s3cfg_global_unique):
         """
         测试-验证已认证用户使用Post请求上传对象，conditions设置为空列表

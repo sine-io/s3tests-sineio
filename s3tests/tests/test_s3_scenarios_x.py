@@ -1,7 +1,7 @@
 
 import pytest
 
-from s3tests_pytest.tests import TestBaseClass
+from s3tests.tests import TestBaseClass
 
 
 class TestAnotherScenarios(TestBaseClass):

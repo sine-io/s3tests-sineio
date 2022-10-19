@@ -1,6 +1,6 @@
 import pytest
 
-from s3tests_pytest.tests import (
+from s3tests.tests import (
     TestBaseClass,
     assert_raises,
     ClientError,
@@ -55,7 +55,7 @@ class TestMultipartBase(TestBaseClass):
 
 class TestObjectMultipartUpload(TestMultipartBase):
 
-    @pytest.mark.ess
+    @pytest.mark.sio
     def test_multipart_upload_empty(self, s3cfg_global_unique):
         """
         测试-验证合并分段上传任务的时候，不提供Parts，
@@ -74,7 +74,7 @@ class TestObjectMultipartUpload(TestMultipartBase):
         self.eq(status, 400)
         self.eq(error_code, 'MalformedXML')
 
-    @pytest.mark.ess
+    @pytest.mark.sio
     def test_multipart_upload_small(self, s3cfg_global_unique):
         """
         测试-验证上传一片，且分段对象大小是1
@@ -92,7 +92,7 @@ class TestObjectMultipartUpload(TestMultipartBase):
         response = client.get_object(Bucket=bucket_name, Key=key1)
         self.eq(response['ContentLength'], obj_len)
 
-    @pytest.mark.ess
+    @pytest.mark.sio
     def test_multipart_copy_small(self, s3cfg_global_unique):
         """
         测试-验证upload_part_copy接口拷贝小的分片对象
@@ -114,7 +114,7 @@ class TestObjectMultipartUpload(TestMultipartBase):
         self.eq(size, response['ContentLength'])
         self.check_key_content(client, src_key, src_bucket_name, dest_key, dest_bucket_name)
 
-    @pytest.mark.ess
+    @pytest.mark.sio
     def test_multipart_copy_invalid_range(self, s3cfg_global_unique):
         """
         测试-验证分段上传拷贝接口，使用无效的range，查看是否符合预期
@@ -141,8 +141,8 @@ class TestObjectMultipartUpload(TestMultipartBase):
             raise AssertionError("Invalid response " + str(status))
         self.eq(error_code, 'InvalidRange')
 
-    @pytest.mark.ess
-    @pytest.mark.fails_on_ess
+    @pytest.mark.sio
+    @pytest.mark.fails_on_sio
     @pytest.mark.xfail(reason="预期：无效的CopySourceRange取值应该返回错误响应", run=True, strict=True)
     def test_multipart_copy_improper_range(self, s3cfg_global_unique):
         """
@@ -187,7 +187,7 @@ class TestObjectMultipartUpload(TestMultipartBase):
             self.eq(status, 400)
             self.eq(error_code, 'InvalidArgument')
 
-    @pytest.mark.ess
+    @pytest.mark.sio
     def test_multipart_copy_without_range(self, s3cfg_global_unique):
         """
         测试-验证check multipart copies without x-amz-copy-source-range
@@ -218,7 +218,7 @@ class TestObjectMultipartUpload(TestMultipartBase):
         self.eq(response['ContentLength'], 10)
         self.check_key_content(client, src_key, src_bucket_name, dest_key, dest_bucket_name)
 
-    @pytest.mark.ess
+    @pytest.mark.sio
     def test_multipart_copy_special_names(self, s3cfg_global_unique):
         """
         测试-验证复制分段上传接口，单个小片(size=10 bytes)
@@ -243,7 +243,7 @@ class TestObjectMultipartUpload(TestMultipartBase):
             self.eq(size, response['ContentLength'])
             self.check_key_content(client, src_key, src_bucket_name, dest_key, dest_bucket_name)
 
-    @pytest.mark.ess
+    @pytest.mark.sio
     def test_multipart_upload(self, s3cfg_global_unique):
         """
         测试-验证结束分段上传任务，并验证结果是否正确；
@@ -281,7 +281,7 @@ class TestObjectMultipartUpload(TestMultipartBase):
         self.check_content_using_range(client, key, bucket_name, data, 1000000)
         self.check_content_using_range(client, key, bucket_name, data, 10000000)
 
-    @pytest.mark.ess
+    @pytest.mark.sio
     def test_multipart_upload_resend_part(self, s3cfg_global_unique):
         """
         测试-验证不同文件大小下，结束分段上传是否成功
@@ -298,7 +298,7 @@ class TestObjectMultipartUpload(TestMultipartBase):
         self.check_upload_multipart_resend(s3cfg_global_unique, bucket_name, key, obj_len, [1, 2])
         self.check_upload_multipart_resend(s3cfg_global_unique, bucket_name, key, obj_len, [0, 1, 2, 3, 4, 5])
 
-    @pytest.mark.ess
+    @pytest.mark.sio
     def test_multipart_upload_multiple_sizes(self, s3cfg_global_unique):
         """
         测试-验证不同文件大小下结束分段上传是否成功
@@ -344,7 +344,7 @@ class TestObjectMultipartUpload(TestMultipartBase):
         client.complete_multipart_upload(Bucket=bucket_name, Key=key, UploadId=upload_id,
                                          MultipartUpload={'Parts': parts})
 
-    @pytest.mark.ess
+    @pytest.mark.sio
     def test_multipart_copy_multiple_sizes(self, s3cfg_global_unique):
         """
         测试-验证不同文件大小下upload_part_copy是否成功
@@ -399,7 +399,7 @@ class TestObjectMultipartUpload(TestMultipartBase):
                                          MultipartUpload={'Parts': parts})
         self.check_key_content(client, src_key, src_bucket_name, dest_key, dest_bucket_name)
 
-    @pytest.mark.ess
+    @pytest.mark.sio
     def test_multipart_upload_size_too_small(self, s3cfg_global_unique):
         """
         测试-验证分段小于5MiB时（除最后一段），进行合并会报错，
@@ -419,7 +419,7 @@ class TestObjectMultipartUpload(TestMultipartBase):
         self.eq(status, 400)
         self.eq(error_code, 'EntityTooSmall')
 
-    @pytest.mark.ess
+    @pytest.mark.sio
     def test_multipart_upload_contents(self, s3cfg_global_unique):
         """
         测试-验证分段上传对象body与上传的源对象是一致的
@@ -429,7 +429,7 @@ class TestObjectMultipartUpload(TestMultipartBase):
         bucket_name = self.get_new_bucket(client, s3cfg_global_unique)
         self.do_test_multipart_upload_contents(client, bucket_name, 'mymultipart', 3)
 
-    @pytest.mark.ess
+    @pytest.mark.sio
     def test_multipart_upload_overwrite_existing_object(self, s3cfg_global_unique):
         """
         测试-对已存在的对象进行覆盖写（使用分段上传）
@@ -459,7 +459,7 @@ class TestObjectMultipartUpload(TestMultipartBase):
 
         assert test_string == payload * num_parts
 
-    @pytest.mark.ess
+    @pytest.mark.sio
     def test_abort_multipart_upload(self, s3cfg_global_unique):
         """
         测试-验证中断分段上传任务
@@ -481,7 +481,7 @@ class TestObjectMultipartUpload(TestMultipartBase):
         rgw_object_count = int(response['ResponseMetadata']['HTTPHeaders'].get('x-rgw-object-count', 0))
         self.eq(rgw_object_count, 0)
 
-    @pytest.mark.ess
+    @pytest.mark.sio
     def test_abort_multipart_upload_not_found(self, s3cfg_global_unique):
         """
         测试-验证中断不存在的分段上传任务，
@@ -497,7 +497,7 @@ class TestObjectMultipartUpload(TestMultipartBase):
         self.eq(status, 404)
         self.eq(error_code, 'NoSuchUpload')
 
-    @pytest.mark.ess
+    @pytest.mark.sio
     def test_list_multipart_upload(self, s3cfg_global_unique):
         """
         测试-验证list_multipart_uploads结果是否正确，
@@ -535,8 +535,8 @@ class TestObjectMultipartUpload(TestMultipartBase):
         client.abort_multipart_upload(Bucket=bucket_name, Key=key, UploadId=upload_id2)
         client.abort_multipart_upload(Bucket=bucket_name, Key=key2, UploadId=upload_id3)
 
-    @pytest.mark.ess
-    @pytest.mark.fails_on_ess  # TODO: ObjectOwnership parameter is not suitable.
+    @pytest.mark.sio
+    @pytest.mark.fails_on_sio  # TODO: ObjectOwnership parameter is not suitable.
     @pytest.mark.xfail(reason="预期：list_multipart_uploads中owner按照ObjectOwnership显示", run=True, strict=True)
     def test_list_multipart_upload_owner(self, s3cfg_global_unique):
         """
@@ -590,7 +590,7 @@ class TestObjectMultipartUpload(TestMultipartBase):
         finally:
             client1.abort_multipart_upload(Bucket=bucket_name, Key=key1, UploadId=upload1)
 
-    @pytest.mark.ess
+    @pytest.mark.sio
     def test_multipart_upload_missing_part(self, s3cfg_global_unique):
         """
         测试-验证使用错误的PartNumber进行合并分段任务，
@@ -615,7 +615,7 @@ class TestObjectMultipartUpload(TestMultipartBase):
         self.eq(status, 400)
         self.eq(error_code, 'InvalidPart')
 
-    @pytest.mark.ess
+    @pytest.mark.sio
     def test_multipart_upload_incorrect_etag(self, s3cfg_global_unique):
         """
          测试-验证使用错误的ETag进行合并分段任务，
@@ -640,7 +640,7 @@ class TestObjectMultipartUpload(TestMultipartBase):
         self.eq(status, 400)
         self.eq(error_code, 'InvalidPart')
 
-    @pytest.mark.ess
+    @pytest.mark.sio
     def test_atomic_multipart_upload_write(self, s3cfg_global_unique):
         """
         测试-验证对已存在的对象进行创建分段上传任务后中断此任务，查看是否影响此对象。
@@ -662,7 +662,7 @@ class TestObjectMultipartUpload(TestMultipartBase):
         body = self.get_body(response)
         self.eq(body, 'bar')
 
-    @pytest.mark.ess
+    @pytest.mark.sio
     def test_multipart_resend_first_finishes_last(self, s3cfg_global_unique):
         """
         测试-验证对同一个分段进行覆盖写，查看结果是否符合预期，

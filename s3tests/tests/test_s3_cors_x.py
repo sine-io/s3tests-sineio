@@ -4,7 +4,7 @@ import time
 import pytest
 import httpx
 
-from s3tests_pytest.tests import TestBaseClass, assert_raises, ClientError, get_client
+from s3tests.tests import TestBaseClass, assert_raises, ClientError, get_client
 
 
 class TestCorsBase(TestBaseClass):

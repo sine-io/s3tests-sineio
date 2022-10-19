@@ -1,10 +1,10 @@
 ========================
- S3 compatibility tests with pytest
+ S3 compatibility tests
 ========================
 
 This is a set of unofficial Amazon AWS S3 compatibility
 tests, that can be useful to people implementing software
-that exposes an S3-like API. The tests use the Boto3 libraries.
+that exposes an S3-like API. The tests use the Boto2 and Boto3 libraries.
 
 The tests use the pytest test framework. To get started, ensure you have
 the software installed::
@@ -19,12 +19,12 @@ Once you have that file copied and renamed(s3tests.conf)
 and edited(``host, port, ssh_user, ssh_passwd, ssh_port``),
 you can create users::
 
-    cd s3tests-pytest
+    cd s3-tests-ehualu
     python bootstrap.py
 
 Then you can run the tests with::
 
-	cd s3tests-pytest/s3tests_pytest
+	cd s3-tests-ehualu/s3tests_pytest
 	pytest or pytest --s3cfg s3tests.conf-path
 
 You can specify which test to run::

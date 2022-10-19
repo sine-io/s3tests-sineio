@@ -1,6 +1,6 @@
 import pytest
 
-from s3tests_pytest.tests import TestBaseClass, assert_raises, ClientError, get_client
+from s3tests.tests import TestBaseClass, assert_raises, ClientError, get_client
 
 
 class TestMetadataBase(TestBaseClass):
@@ -43,7 +43,7 @@ class TestMetadataBase(TestBaseClass):
 
 class TestObjectMetadata(TestMetadataBase):
 
-    @pytest.mark.ess
+    @pytest.mark.sio
     def test_object_set_get_metadata_none_to_good(self, s3cfg_global_unique):
         """
         测试-设置并获取自定义对象元数据
@@ -51,7 +51,7 @@ class TestObjectMetadata(TestMetadataBase):
         got = self.set_get_metadata(s3cfg_global_unique, 'mymeta')
         self.eq(got, 'mymeta')
 
-    @pytest.mark.ess
+    @pytest.mark.sio
     def test_object_set_get_metadata_none_to_empty(self, s3cfg_global_unique):
         """
         测试-设置并获取自定义对象元数据（设置空值）
@@ -59,7 +59,7 @@ class TestObjectMetadata(TestMetadataBase):
         got = self.set_get_metadata(s3cfg_global_unique, '')
         self.eq(got, '')
 
-    @pytest.mark.ess
+    @pytest.mark.sio
     def test_object_set_get_metadata_overwrite_to_empty(self, s3cfg_global_unique):
         """
         测试-设置并获取自定义对象元数据，之后设置为空
@@ -71,7 +71,7 @@ class TestObjectMetadata(TestMetadataBase):
         got = self.set_get_metadata(s3cfg_global_unique, '', bucket_name)
         self.eq(got, '')
 
-    @pytest.mark.fails_on_ess
+    @pytest.mark.fails_on_sio
     def test_object_set_get_unicode_metadata(self, s3cfg_global_unique):
         """
         @attr(operation='metadata write/re-write')

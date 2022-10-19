@@ -1,12 +1,12 @@
 import pytest
 
-from s3tests_pytest.functional.policy import Statement, Policy, make_json_policy
-from s3tests_pytest.tests import TestBaseClass, assert_raises, ClientError, get_client, get_alt_client
+from s3tests.functional.policy import Statement, Policy, make_json_policy
+from s3tests.tests import TestBaseClass, assert_raises, ClientError, get_client, get_alt_client
 
 
+@pytest.mark.sio
 class TestTaggingPolicyMixin(TestBaseClass):
 
-    @pytest.mark.ess
     def test_get_tags_acl_public(self, s3cfg_global_unique):
         """
         测试-验证policy为GetObjectTagging时，获取tagging
@@ -28,7 +28,6 @@ class TestTaggingPolicyMixin(TestBaseClass):
         response = alt_client.get_object_tagging(Bucket=bucket_name, Key=key)
         self.eq(response['TagSet'], input_tag_set['TagSet'])
 
-    @pytest.mark.ess
     def test_put_tags_acl_public(self, s3cfg_global_unique):
         """
         测试-验证policy为PutObjectTagging时，进行设置对象tagging
@@ -49,7 +48,6 @@ class TestTaggingPolicyMixin(TestBaseClass):
         response = client.get_object_tagging(Bucket=bucket_name, Key=key)
         self.eq(response['TagSet'], input_tag_set['TagSet'])
 
-    @pytest.mark.ess
     def test_delete_tags_obj_public(self, s3cfg_global_unique):
         """
         测试-验证policy为DeleteObjectTagging时，进行删除对象tagging操作
@@ -75,7 +73,6 @@ class TestTaggingPolicyMixin(TestBaseClass):
         response = client.get_object_tagging(Bucket=bucket_name, Key=key)
         self.eq(len(response['TagSet']), 0)
 
-    @pytest.mark.ess
     def test_bucket_policy_get_obj_existing_tag(self, s3cfg_global_unique):
         """
         测试-验证ExistingObjectTag conditional on get object
@@ -124,7 +121,6 @@ class TestTaggingPolicyMixin(TestBaseClass):
         status, error_code = self.get_status_and_error_code(e.response)
         self.eq(status, 403)
 
-    @pytest.mark.ess
     def test_bucket_policy_get_obj_tagging_existing_tag(self, s3cfg_global_unique):
         """
         测试-验证ExistingObjectTag conditional on get object tagging
@@ -180,7 +176,6 @@ class TestTaggingPolicyMixin(TestBaseClass):
         status, error_code = self.get_status_and_error_code(e.response)
         self.eq(status, 403)
 
-    @pytest.mark.ess
     def test_bucket_policy_put_obj_tagging_existing_tag(self, s3cfg_global_unique):
         """
         测试-验证ExistingObjectTag conditional on put object tagging
@@ -244,7 +239,6 @@ class TestTaggingPolicyMixin(TestBaseClass):
         status, error_code = self.get_status_and_error_code(e.response)
         self.eq(status, 403)
 
-    @pytest.mark.ess
     def test_bucket_policy_put_obj_copy_source(self, s3cfg_global_unique):
         """
         测试-验证copy-source conditional on put obj
@@ -291,7 +285,6 @@ class TestTaggingPolicyMixin(TestBaseClass):
         copy_source = {'Bucket': bucket_name, 'Key': 'private/foo'}
         self.check_access_denied(alt_client.copy_object, Bucket=bucket_name2, CopySource=copy_source, Key='new_foo2')
 
-    @pytest.mark.ess
     def test_bucket_policy_put_obj_copy_source_meta(self, s3cfg_global_unique):
         """
         测试-验证copy-source conditional on put obj
@@ -342,7 +335,6 @@ class TestTaggingPolicyMixin(TestBaseClass):
         self.check_access_denied(alt_client.copy_object, Bucket=bucket_name, CopySource=copy_source, Key='new_foo2',
                                  Metadata={"foo": "bar"})
 
-    @pytest.mark.ess
     def test_bucket_policy_put_obj_acl(self, s3cfg_global_unique):
         """
         测试-验证put obj with canned-acl not to be public
@@ -384,8 +376,7 @@ class TestTaggingPolicyMixin(TestBaseClass):
         status, error_code = self.get_status_and_error_code(e.response)
         self.eq(status, 403)
 
-    @pytest.mark.ess
-    @pytest.mark.fails_on_ess  # TODO: remove this fails_on_rgw when I fix it
+    @pytest.mark.fails_on_sio  # TODO: remove this fails_on_rgw when I fix it
     @pytest.mark.xfail(reason="预期：上传对象的时候，可以在headers里设置x-amz-tagging参数", run=True, strict=True)
     def test_bucket_policy_put_obj_request_obj_tag(self, s3cfg_global_unique):
         """
@@ -416,7 +407,6 @@ class TestTaggingPolicyMixin(TestBaseClass):
         # TODO: why is this a 400 and not passing
         alt_client.put_object(Bucket=bucket_name, Key=key1_str, Body=key1_str)
 
-    @pytest.mark.ess
     def test_bucket_policy_get_obj_acl_existing_tag(self, s3cfg_global_unique):
         """
         测试-验证ExistingObjectTag conditional on get object acl

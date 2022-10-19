@@ -4,19 +4,19 @@ import boto3
 import pytest
 import requests
 
-from s3tests_pytest.functional.policy import Statement, Policy, make_json_policy
-from s3tests_pytest.tests import (
+from s3tests.functional.policy import Statement, Policy, make_json_policy
+from s3tests.tests import (
     TestBaseClass, assert_raises, ClientError, get_client, get_alt_client, get_v2_client
 )
 
 
+@pytest.mark.sio
 class TestBucketPolicy(TestBaseClass):
     """
     https://docs.aws.amazon.com/zh_cn/AmazonS3/latest/userguide/using-iam-policies.html
     https://docs.aws.amazon.com/zh_cn/AmazonS3/latest/userguide/bucket-policies.html
     """
 
-    @pytest.mark.ess
     def test_bucket_policy(self, s3cfg_global_unique):
         """
         测试-验证Policy：给所有用户赋予存储桶ListBucket权限（list_objects）
@@ -35,7 +35,6 @@ class TestBucketPolicy(TestBaseClass):
         response = alt_client.list_objects(Bucket=bucket_name)
         self.eq(len(response['Contents']), 1)
 
-    @pytest.mark.ess
     def test_bucket_v2_policy(self, s3cfg_global_unique):
         """
         测试-验证Policy：给所有用户赋予存储桶ListBucket权限（list_objects_v2）
@@ -54,7 +53,6 @@ class TestBucketPolicy(TestBaseClass):
         response = alt_client.list_objects_v2(Bucket=bucket_name)
         self.eq(len(response['Contents']), 1)
 
-    @pytest.mark.ess
     def test_bucket_policy_another_bucket(self, s3cfg_global_unique):
         """
         测试-验证从某个桶获取的Policy后给另一个桶设置相同的Policy（使用list_objects进行验证）
@@ -85,7 +83,6 @@ class TestBucketPolicy(TestBaseClass):
         response = alt_client.list_objects(Bucket=bucket_name2)
         self.eq(len(response['Contents']), 1)
 
-    @pytest.mark.ess
     def test_bucket_v2_policy_another_bucket(self, s3cfg_global_unique):
         """
         测试-验证从某个桶获取的Policy后给另一个桶设置相同的Policy（使用list_objects_v2进行验证）
@@ -117,7 +114,6 @@ class TestBucketPolicy(TestBaseClass):
         response = alt_client.list_objects_v2(Bucket=bucket_name2)
         self.eq(len(response['Contents']), 1)
 
-    @pytest.mark.ess
     def test_bucket_policy_set_condition_operator_end_with_if_exists(self, s3cfg_global_unique):
         """
         测试-验证Policy的Condition中的StringLikeIfExists参数+aws:Referer
@@ -176,8 +172,7 @@ class TestBucketPolicy(TestBaseClass):
         response = requests.get(url + f'/{bucket_name}/{key}', headers={'referer': 'http://www.example.com'})
         self.eq(response.status_code, 403)
 
-    @pytest.mark.ess
-    @pytest.mark.fails_on_ess
+    @pytest.mark.fails_on_sio
     @pytest.mark.xfail(reason="预期：IsPublic为False，但是返回结果为空", run=True, strict=True)
     def test_get_bucket_policy_status(self, s3cfg_global_unique):
         """
@@ -195,8 +190,7 @@ class TestBucketPolicy(TestBaseClass):
         resp = client.get_bucket_policy_status(Bucket=bucket_name)
         self.eq(resp['PolicyStatus']['IsPublic'], False)
 
-    @pytest.mark.ess
-    @pytest.mark.fails_on_ess
+    @pytest.mark.fails_on_sio
     @pytest.mark.xfail(reason="预期：IsPublic为False，但是返回结果为空", run=True, strict=True)
     def test_get_public_acl_bucket_policy_status(self, s3cfg_global_unique):
         """
@@ -209,8 +203,7 @@ class TestBucketPolicy(TestBaseClass):
         resp = client.get_bucket_policy_status(Bucket=bucket_name)
         self.eq(resp['PolicyStatus']['IsPublic'], True)
 
-    @pytest.mark.ess
-    @pytest.mark.fails_on_ess
+    @pytest.mark.fails_on_sio
     @pytest.mark.xfail(reason="预期：IsPublic为False，但是返回结果为空", run=True, strict=True)
     def test_get_auth_public_acl_bucket_policy_status(self, s3cfg_global_unique):
         """
@@ -223,8 +216,7 @@ class TestBucketPolicy(TestBaseClass):
         resp = client.get_bucket_policy_status(Bucket=bucket_name)
         self.eq(resp['PolicyStatus']['IsPublic'], True)
 
-    @pytest.mark.ess
-    @pytest.mark.fails_on_ess
+    @pytest.mark.fails_on_sio
     @pytest.mark.xfail(reason="预期：IsPublic为False，但是返回结果为空", run=True, strict=True)
     def test_get_public_policy_acl_bucket_policy_status(self, s3cfg_global_unique):
         """
@@ -247,8 +239,7 @@ class TestBucketPolicy(TestBaseClass):
         # 'PolicyStatus': {}
         self.eq(resp['PolicyStatus']['IsPublic'], True)
 
-    @pytest.mark.ess
-    @pytest.mark.fails_on_ess
+    @pytest.mark.fails_on_sio
     @pytest.mark.xfail(reason="预期：IsPublic为False，但是返回结果为空", run=True, strict=True)
     def test_get_non_public_policy_acl_bucket_policy_status(self, s3cfg_global_unique):
         """
@@ -272,8 +263,7 @@ class TestBucketPolicy(TestBaseClass):
         resp = client.get_bucket_policy_status(Bucket=bucket_name)
         self.eq(resp['PolicyStatus']['IsPublic'], False)
 
-    @pytest.mark.ess
-    @pytest.mark.fails_on_ess
+    @pytest.mark.fails_on_sio
     @pytest.mark.xfail(reason="预期：IsPublic为False，但是返回结果为空", run=True, strict=True)
     def test_get_non_public_policy_deny_bucket_policy_status(self, s3cfg_global_unique):
         """
@@ -306,7 +296,6 @@ class TestBucketPolicy(TestBaseClass):
         resp = client.get_bucket_policy_status(Bucket=bucket_name)
         self.eq(resp['PolicyStatus']['IsPublic'], True)
 
-    @pytest.mark.ess
     def test_multipart_upload_on_a_bucket_with_policy(self, s3cfg_global_unique):
         """
         测试-验证往设置policy的存储桶里分段上传对象
@@ -337,8 +326,7 @@ class TestBucketPolicy(TestBaseClass):
                                                     MultipartUpload={'Parts': parts})
         self.eq(response['ResponseMetadata']['HTTPStatusCode'], 200)
 
-    @pytest.mark.ess
-    @pytest.mark.fails_on_ess
+    @pytest.mark.fails_on_sio
     @pytest.mark.xfail(reason="预期：PublicAccessBlockConfiguration返回4个值，但Ceph返回结果为空", run=True, strict=True)
     def test_get_default_public_block(self, s3cfg_global_unique):
         """
@@ -354,8 +342,7 @@ class TestBucketPolicy(TestBaseClass):
         self.eq(resp['PublicAccessBlockConfiguration']['IgnorePublicAcls'], False)
         self.eq(resp['PublicAccessBlockConfiguration']['RestrictPublicBuckets'], False)
 
-    @pytest.mark.ess
-    @pytest.mark.fails_on_ess
+    @pytest.mark.fails_on_sio
     @pytest.mark.xfail(reason="预期：PublicAccessBlockConfiguration返回4个值，但Ceph返回结果为空", run=True, strict=True)
     def test_put_public_block(self, s3cfg_global_unique):
         """
@@ -376,8 +363,7 @@ class TestBucketPolicy(TestBaseClass):
         self.eq(resp['PublicAccessBlockConfiguration']['IgnorePublicAcls'], access_conf['IgnorePublicAcls'])
         self.eq(resp['PublicAccessBlockConfiguration']['RestrictPublicBuckets'], access_conf['RestrictPublicBuckets'])
 
-    @pytest.mark.ess
-    @pytest.mark.fails_on_ess
+    @pytest.mark.fails_on_sio
     @pytest.mark.xfail(reason="预期：PublicAccessBlockConfiguration返回4个值，但Ceph返回结果为空", run=True, strict=True)
     def test_block_public_put_bucket_acls(self, s3cfg_global_unique):
         """
@@ -408,8 +394,7 @@ class TestBucketPolicy(TestBaseClass):
         status, error_code = self.get_status_and_error_code(e.response)
         self.eq(status, 403)
 
-    @pytest.mark.ess
-    @pytest.mark.fails_on_ess
+    @pytest.mark.fails_on_sio
     @pytest.mark.xfail(reason="预期：PublicAccessBlockConfiguration返回4个值，但Ceph返回结果为空", run=True, strict=True)
     def test_block_public_object_canned_acls(self, s3cfg_global_unique):
         """
@@ -443,8 +428,7 @@ class TestBucketPolicy(TestBaseClass):
         status, error_code = self.get_status_and_error_code(e.response)
         self.eq(status, 403)
 
-    @pytest.mark.ess
-    @pytest.mark.fails_on_ess
+    @pytest.mark.fails_on_sio
     @pytest.mark.xfail(reason="Ceph未实现put_public_access_block接口", run=True, strict=True)
     def test_block_public_policy(self, s3cfg_global_unique):
         """
@@ -464,8 +448,7 @@ class TestBucketPolicy(TestBaseClass):
 
         self.check_access_denied(client.put_bucket_policy, Bucket=bucket_name, Policy=policy_document)
 
-    @pytest.mark.ess
-    @pytest.mark.fails_on_ess
+    @pytest.mark.fails_on_sio
     @pytest.mark.xfail(reason="Ceph未实现put_public_access_block接口", run=True, strict=True)
     def test_ignore_public_acls(self, s3cfg_global_unique):
         """
@@ -495,8 +478,8 @@ class TestBucketPolicy(TestBaseClass):
         self.check_access_denied(alt_client.list_objects, Bucket=bucket_name)
         self.check_access_denied(alt_client.get_object, Bucket=bucket_name, Key='key1')
 
-    @pytest.mark.ess_maybe
-    @pytest.mark.fails_on_ess  # TODO: remove this 'fails_on_rgw' once I get the test passing
+    @pytest.mark.sio_maybe
+    @pytest.mark.fails_on_sio  # TODO: remove this 'fails_on_rgw' once I get the test passing
     @pytest.mark.xfail(reason="加密传输，现阶段不严重，而且用例也不完善", run=True, strict=True)
     def test_bucket_policy_put_obj_enc(self, s3cfg_global_unique):
         """

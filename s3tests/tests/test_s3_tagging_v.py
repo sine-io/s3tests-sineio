@@ -10,7 +10,7 @@ import pytest
 import pytz
 import requests
 
-from s3tests_pytest.tests import TestBaseClass, assert_raises, ClientError, get_client
+from s3tests.tests import TestBaseClass, assert_raises, ClientError, get_client
 
 
 class TestTaggingBase(TestBaseClass):
@@ -19,7 +19,7 @@ class TestTaggingBase(TestBaseClass):
         return self.gen_rand_string(size, chars=string.ascii_letters)
 
 
-@pytest.mark.ess
+@pytest.mark.sio
 class TestObjectTagging(TestTaggingBase):
 
     def test_get_obj_tagging(self, s3cfg_global_unique):
@@ -318,8 +318,8 @@ class TestObjectTagging(TestTaggingBase):
 
 class TestBucketTagging(TestTaggingBase):
 
-    @pytest.mark.ess
-    @pytest.mark.fails_on_ess
+    @pytest.mark.sio
+    @pytest.mark.fails_on_sio
     @pytest.mark.xfail(reason="预期：当没设置桶标签的时候，获取标签返回NoSuchTagSetError", run=True, strict=True)
     def test_set_bucket_tagging(self, s3cfg_global_unique):
         """

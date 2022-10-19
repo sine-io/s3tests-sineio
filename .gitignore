@@ -1,0 +1,18 @@
+*~
+.#*
+## the next line needs to start with a backslash to avoid looking like
+## a comment
+\#*#
+.*.swp
+
+*.pyc
+*.pyo
+
+/*.egg-info
+/virtualenv
+
+.idea
+
+s3tests/s3tests.conf
+s3tests/report/*
+s3tests/pytest.ini
