@@ -2,7 +2,7 @@
 import time
 
 import pytest
-import httpx
+import requests
 
 from s3tests.tests import TestBaseClass, assert_raises, ClientError, get_client
 
@@ -113,87 +113,87 @@ class TestCors(TestCorsBase):
         url = self.get_post_url(s3cfg_global_unique, bucket_name)
 
         self.cors_request_and_check(
-            s3cfg_global_unique, httpx.get, url, None, 200, None, None)
+            s3cfg_global_unique, requests.get, url, None, 200, None, None)
         self.cors_request_and_check(
-            s3cfg_global_unique, httpx.get, url, {'Origin': 'foo.suffix'}, 200, 'foo.suffix', 'GET')
+            s3cfg_global_unique, requests.get, url, {'Origin': 'foo.suffix'}, 200, 'foo.suffix', 'GET')
         self.cors_request_and_check(
-            s3cfg_global_unique, httpx.get, url, {'Origin': 'foo.bar'}, 200, None, None)
+            s3cfg_global_unique, requests.get, url, {'Origin': 'foo.bar'}, 200, None, None)
         self.cors_request_and_check(
-            s3cfg_global_unique, httpx.get, url, {'Origin': 'foo.suffix.get'}, 200, None, None)
+            s3cfg_global_unique, requests.get, url, {'Origin': 'foo.suffix.get'}, 200, None, None)
         self.cors_request_and_check(
-            s3cfg_global_unique, httpx.get, url, {'Origin': 'startend'}, 200, 'startend', 'GET')
+            s3cfg_global_unique, requests.get, url, {'Origin': 'startend'}, 200, 'startend', 'GET')
         self.cors_request_and_check(
-            s3cfg_global_unique, httpx.get, url, {'Origin': 'start1end'}, 200, 'start1end', 'GET')
+            s3cfg_global_unique, requests.get, url, {'Origin': 'start1end'}, 200, 'start1end', 'GET')
         self.cors_request_and_check(
-            s3cfg_global_unique, httpx.get, url, {'Origin': 'start12end'}, 200, 'start12end', 'GET')
+            s3cfg_global_unique, requests.get, url, {'Origin': 'start12end'}, 200, 'start12end', 'GET')
         self.cors_request_and_check(
-            s3cfg_global_unique, httpx.get, url, {'Origin': '0start12end'}, 200, None, None)
+            s3cfg_global_unique, requests.get, url, {'Origin': '0start12end'}, 200, None, None)
         self.cors_request_and_check(
-            s3cfg_global_unique, httpx.get, url, {'Origin': 'prefix'}, 200, 'prefix', 'GET')
+            s3cfg_global_unique, requests.get, url, {'Origin': 'prefix'}, 200, 'prefix', 'GET')
         self.cors_request_and_check(
-            s3cfg_global_unique, httpx.get, url, {'Origin': 'prefix.suffix'}, 200, 'prefix.suffix', 'GET')
+            s3cfg_global_unique, requests.get, url, {'Origin': 'prefix.suffix'}, 200, 'prefix.suffix', 'GET')
         self.cors_request_and_check(
-            s3cfg_global_unique, httpx.get, url, {'Origin': 'bla.prefix'}, 200, None, None)
+            s3cfg_global_unique, requests.get, url, {'Origin': 'bla.prefix'}, 200, None, None)
 
         obj_url = '{u}/{o}'.format(u=url, o='bar')
         self.cors_request_and_check(
-            s3cfg_global_unique, httpx.get, obj_url, {'Origin': 'foo.suffix'}, 404, 'foo.suffix', 'GET')
-        self.cors_request_and_check(s3cfg_global_unique, httpx.put, obj_url,
+            s3cfg_global_unique, requests.get, obj_url, {'Origin': 'foo.suffix'}, 404, 'foo.suffix', 'GET')
+        self.cors_request_and_check(s3cfg_global_unique, requests.put, obj_url,
                                     {'Origin': 'foo.suffix', 'Access-Control-Request-Method': 'GET',
                                      'content-length': '0'}, 403, 'foo.suffix', 'GET')
-        self.cors_request_and_check(s3cfg_global_unique, httpx.put, obj_url,
+        self.cors_request_and_check(s3cfg_global_unique, requests.put, obj_url,
                                     {'Origin': 'foo.suffix', 'Access-Control-Request-Method': 'PUT',
                                      'content-length': '0'}, 403, None, None)
 
-        self.cors_request_and_check(s3cfg_global_unique, httpx.put, obj_url,
+        self.cors_request_and_check(s3cfg_global_unique, requests.put, obj_url,
                                     {'Origin': 'foo.suffix', 'Access-Control-Request-Method': 'DELETE',
                                      'content-length': '0'}, 403, None, None)
-        self.cors_request_and_check(s3cfg_global_unique, httpx.put, obj_url,
+        self.cors_request_and_check(s3cfg_global_unique, requests.put, obj_url,
                                     {'Origin': 'foo.suffix', 'content-length': '0'}, 403, None, None)
 
-        self.cors_request_and_check(s3cfg_global_unique, httpx.put, obj_url,
+        self.cors_request_and_check(s3cfg_global_unique, requests.put, obj_url,
                                     {'Origin': 'foo.put', 'content-length': '0'}, 403, 'foo.put', 'PUT')
 
         self.cors_request_and_check(
-            s3cfg_global_unique, httpx.get, obj_url, {'Origin': 'foo.suffix'}, 404, 'foo.suffix', 'GET')
+            s3cfg_global_unique, requests.get, obj_url, {'Origin': 'foo.suffix'}, 404, 'foo.suffix', 'GET')
         self.cors_request_and_check(
-            s3cfg_global_unique, httpx.options, url, None, 400, None, None)
+            s3cfg_global_unique, requests.options, url, None, 400, None, None)
         self.cors_request_and_check(
-            s3cfg_global_unique, httpx.options, url, {'Origin': 'foo.suffix'}, 400, None, None)
-        self.cors_request_and_check(s3cfg_global_unique, httpx.options, url, {'Origin': 'bla'}, 400, None, None)
-        self.cors_request_and_check(s3cfg_global_unique, httpx.options, obj_url,
+            s3cfg_global_unique, requests.options, url, {'Origin': 'foo.suffix'}, 400, None, None)
+        self.cors_request_and_check(s3cfg_global_unique, requests.options, url, {'Origin': 'bla'}, 400, None, None)
+        self.cors_request_and_check(s3cfg_global_unique, requests.options, obj_url,
                                     {'Origin': 'foo.suffix', 'Access-Control-Request-Method': 'GET',
                                      'content-length': '0'}, 200, 'foo.suffix', 'GET')
-        self.cors_request_and_check(s3cfg_global_unique, httpx.options, url,
+        self.cors_request_and_check(s3cfg_global_unique, requests.options, url,
                                     {'Origin': 'foo.bar', 'Access-Control-Request-Method': 'GET'},
                                     403, None, None)
-        self.cors_request_and_check(s3cfg_global_unique, httpx.options, url,
+        self.cors_request_and_check(s3cfg_global_unique, requests.options, url,
                                     {'Origin': 'foo.suffix.get', 'Access-Control-Request-Method': 'GET'}, 403, None,
                                     None)
-        self.cors_request_and_check(s3cfg_global_unique, httpx.options, url,
+        self.cors_request_and_check(s3cfg_global_unique, requests.options, url,
                                     {'Origin': 'startend', 'Access-Control-Request-Method': 'GET'},
                                     200, 'startend', 'GET')
-        self.cors_request_and_check(s3cfg_global_unique, httpx.options, url,
+        self.cors_request_and_check(s3cfg_global_unique, requests.options, url,
                                     {'Origin': 'start1end', 'Access-Control-Request-Method': 'GET'},
                                     200, 'start1end', 'GET')
-        self.cors_request_and_check(s3cfg_global_unique, httpx.options, url,
+        self.cors_request_and_check(s3cfg_global_unique, requests.options, url,
                                     {'Origin': 'start12end', 'Access-Control-Request-Method': 'GET'},
                                     200, 'start12end', 'GET')
-        self.cors_request_and_check(s3cfg_global_unique, httpx.options, url,
+        self.cors_request_and_check(s3cfg_global_unique, requests.options, url,
                                     {'Origin': '0start12end', 'Access-Control-Request-Method': 'GET'}, 403, None, None)
-        self.cors_request_and_check(s3cfg_global_unique, httpx.options, url,
+        self.cors_request_and_check(s3cfg_global_unique, requests.options, url,
                                     {'Origin': 'prefix', 'Access-Control-Request-Method': 'GET'},
                                     200, 'prefix', 'GET')
-        self.cors_request_and_check(s3cfg_global_unique, httpx.options, url,
+        self.cors_request_and_check(s3cfg_global_unique, requests.options, url,
                                     {'Origin': 'prefix.suffix', 'Access-Control-Request-Method': 'GET'}, 200,
                                     'prefix.suffix', 'GET')
-        self.cors_request_and_check(s3cfg_global_unique, httpx.options, url,
+        self.cors_request_and_check(s3cfg_global_unique, requests.options, url,
                                     {'Origin': 'bla.prefix', 'Access-Control-Request-Method': 'GET'},
                                     403, None, None)
-        self.cors_request_and_check(s3cfg_global_unique, httpx.options, url,
+        self.cors_request_and_check(s3cfg_global_unique, requests.options, url,
                                     {'Origin': 'foo.put', 'Access-Control-Request-Method': 'GET'},
                                     403, None, None)
-        self.cors_request_and_check(s3cfg_global_unique, httpx.options, url,
+        self.cors_request_and_check(s3cfg_global_unique, requests.options, url,
                                     {'Origin': 'foo.put', 'Access-Control-Request-Method': 'PUT'},
                                     200, 'foo.put', 'PUT')
 
@@ -222,8 +222,8 @@ class TestCors(TestCorsBase):
 
         url = self.get_post_url(s3cfg_global_unique, bucket_name)
 
-        self.cors_request_and_check(s3cfg_global_unique, httpx.get, url, None, 200, None, None)
-        self.cors_request_and_check(s3cfg_global_unique, httpx.get, url, {'Origin': 'example.origin'}, 200, '*',
+        self.cors_request_and_check(s3cfg_global_unique, requests.get, url, None, 200, None, None)
+        self.cors_request_and_check(s3cfg_global_unique, requests.get, url, {'Origin': 'example.origin'}, 200, '*',
                                     'GET')
 
     def test_cors_header_option(self, s3cfg_global_unique):
@@ -254,6 +254,6 @@ class TestCors(TestCorsBase):
         obj_url = '{u}/{o}'.format(u=url, o='bar')
 
         self.cors_request_and_check(
-            s3cfg_global_unique, httpx.options, obj_url,
+            s3cfg_global_unique, requests.options, obj_url,
             {'Origin': 'example.origin', 'Access-Control-Request-Headers': 'x-amz-meta-header2',
              'Access-Control-Request-Method': 'GET'}, 403, None, None)

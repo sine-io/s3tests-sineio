@@ -8,7 +8,7 @@ from unittest import SkipTest
 
 import pytest
 import pytz
-import httpx
+import requests
 
 from s3tests.tests import TestBaseClass, assert_raises, ClientError, get_client
 
@@ -385,7 +385,7 @@ class TestObjectEncryption(TestEncryptionBase):
                                ('x-amz-server-side-encryption-customer-key-md5', 'DWygnHRtgiJ77HCm+1rvHw=='),
                                ('file', 'bar')])
 
-        r = httpx.post(url, files=payload, verify=s3cfg_global_unique.default_ssl_verify)
+        r = requests.post(url, files=payload, verify=s3cfg_global_unique.default_ssl_verify)
         self.eq(r.status_code, 204)
 
         get_headers = {
@@ -530,7 +530,7 @@ class TestObjectEncryption(TestEncryptionBase):
                                ('x-amz-server-side-encryption-aws-kms-key-id', kms_keyid),
                                ('file', 'bar')])
 
-        r = httpx.post(url, files=payload, verify=s3cfg_global_unique.default_ssl_verify)
+        r = requests.post(url, files=payload, verify=s3cfg_global_unique.default_ssl_verify)
         self.eq(r.status_code, 204)
 
         response = client.get_object(Bucket=bucket_name, Key='foo.txt')

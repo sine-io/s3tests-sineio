@@ -26,6 +26,8 @@ conda activate s3tests-sineio
 cd s3tests-sineio
 
 # install the requirements
+pip install pytest pytest-html pytest-xdist pytest-rerunfailures pytest-reportportal boto3 fabric munch pytz isodate -i https://pypi.douban.com/simple
+# or
 pip install -r requirements.txt
 # or
 pip install -r requirements.txt -i https://pypi.douban.com/simple
