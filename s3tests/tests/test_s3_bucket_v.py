@@ -268,9 +268,7 @@ class TestBucketOpts(TestBucketBase):
         self.eq(prefixes, ['foo/', 'quux/'])
 
     @pytest.mark.sio
-    @pytest.mark.fails_on_sio
-    @pytest.mark.xfail(
-        reason="KeyCount=len(CommonPrefixes)+len(Contents), and Ceph is not suitable.", run=True, strict=True)
+    @pytest.mark.pass_on_sio  # Bug fixed on version: v2.4.0.0
     def test_bucket_list_v2_delimiter_basic(self, s3cfg_global_unique):
         """
         测试-验证list_objects-v2的Delimiter参数，
@@ -291,12 +289,10 @@ class TestBucketOpts(TestBucketBase):
         prefixes = self.get_prefixes(response)
         self.eq(len(prefixes), 2)
         self.eq(prefixes, ['foo/', 'quux/'])
-        # 1 != 3
         self.eq(response['KeyCount'], len(prefixes) + len(keys))
 
     @pytest.mark.sio
-    @pytest.mark.fails_on_sio
-    @pytest.mark.xfail(reason="预期：返回的结果符合url方式", run=True, strict=True)
+    @pytest.mark.pass_on_sio  # Bug fixed on version: v2.4.0.0
     def test_bucket_list_v2_encoding_basic(self, s3cfg_global_unique):
         """
         测试-验证list_objects-v2的Delimiter和EncodingType参数
@@ -315,12 +311,10 @@ class TestBucketOpts(TestBucketBase):
         prefixes = self.get_prefixes(response)
         self.eq(len(prefixes), 3)
 
-        # ['foo+1/', 'foo/', 'quux ab/'] != ['foo%2B1/', 'foo/', 'quux%20ab/']
         self.eq(prefixes, ['foo%2B1/', 'foo/', 'quux%20ab/'])
 
     @pytest.mark.sio
-    @pytest.mark.fails_on_sio
-    @pytest.mark.xfail(reason="预期：返回的结果符合url方式", run=True, strict=True)
+    @pytest.mark.pass_on_sio  # Bug fixed on version: v2.4.0.0
     def test_bucket_list_encoding_basic(self, s3cfg_global_unique):
         """
         测试-验证list_objects的Delimiter和EncodingType参数
@@ -337,7 +331,6 @@ class TestBucketOpts(TestBucketBase):
         prefixes = self.get_prefixes(response)
         self.eq(len(prefixes), 3)
 
-        # ['foo+1/', 'foo/', 'quux ab/'] != ['foo%2B1/', 'foo/', 'quux%20ab/']
         self.eq(prefixes, ['foo%2B1/', 'foo/', 'quux%20ab/'])
 
     @pytest.mark.sio

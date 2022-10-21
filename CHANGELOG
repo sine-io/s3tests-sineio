@@ -1,4 +1,14 @@
 
+ S3TESTS-SINEIO 0.0.0.3(sine 2022.10.21)
+------------------------------------
+- 9: modify run.sh and run_without_rp.sh, change data cmd to date +"%Y-%m-%d-%T"
+- 8: Bugs fixed in the storage on version: v2.4.0.0, so removed the xfail mark of those cases as below:
+      a. tests/test_s3_bucket_v.py::TestBucketOpts::test_bucket_list_v2_delimiter_basic
+      b. tests/test_s3_bucket_v.py::TestBucketOpts::test_bucket_list_v2_encoding_basic
+      c. tests/test_s3_bucket_v.py::TestBucketOpts::test_bucket_list_encoding_basic
+      d. tests/test_s3_lifecycle_v.py::TestLifecycleHighLevel::test_lifecycle_expiration_days0
+      e. tests/test_s3_multipart_upload_v.py::TestObjectMultipartUpload::test_multipart_copy_improper_range
+
 
  S3TESTS-SINEIO 0.0.0.2(sine 2022.10.19)
 ------------------------------------

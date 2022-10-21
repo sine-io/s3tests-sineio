@@ -142,13 +142,11 @@ class TestObjectMultipartUpload(TestMultipartBase):
         self.eq(error_code, 'InvalidRange')
 
     @pytest.mark.sio
-    @pytest.mark.fails_on_sio
-    @pytest.mark.xfail(reason="预期：无效的CopySourceRange取值应该返回错误响应", run=True, strict=True)
+    @pytest.mark.pass_on_sio  # Bug fixed on version: v2.4.0.0
     def test_multipart_copy_improper_range(self, s3cfg_global_unique):
         """
         测试-验证CopySourceRange参数的不同取值(异常取值)下的响应，
         """
-        # TODO: remove fails_on_rgw when https://tracker.ceph.com/issues/40795 is resolved
         client = get_client(s3cfg_global_unique)
 
         src_key = 'source'
@@ -162,10 +160,10 @@ class TestObjectMultipartUpload(TestMultipartBase):
         test_ranges = [
             '{start}-{end}'.format(start=0, end=2),
             'bytes={start}'.format(start=0),
-            'bytes=hello-world',  # succeed, so strange.
-            'bytes=0-bar',  # succeed, so strange.
-            'bytes=hello-',  # succeed, so strange.
-            'bytes=0-2,3-5'  # succeed, so strange.
+            'bytes=hello-world',
+            'bytes=0-bar',
+            'bytes=hello-',
+            'bytes=0-2,3-5'
         ]
 
         """

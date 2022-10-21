@@ -371,8 +371,7 @@ class TestLifecycleLowLevel(TestLifecycleBase):
 class TestLifecycleHighLevel(TestLifecycleBase):
 
     @pytest.mark.sio
-    @pytest.mark.fails_on_sio
-    @pytest.mark.xfail(reason="Expiration的Days=0也能设置成功，不符合S3标准", run=True, strict=True)
+    @pytest.mark.pass_on_sio  # Bug Fixed, on Version: v2.4.0.0
     def test_lifecycle_expiration_days0(self, s3cfg_global_unique):
         """
         测试-验证生命周期的过期规则里Days不能设置为0；
