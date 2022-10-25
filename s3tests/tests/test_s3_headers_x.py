@@ -6,6 +6,7 @@ from s3tests.tests import TestBaseClass, assert_raises, ClientError, get_client,
 
 
 def tag(*tags):
+    # There is no use, can delete it, i think. --- sine, 2022.10.22
     def wrap(func):
         for _tag in tags:
             setattr(func, _tag, True)
@@ -262,6 +263,7 @@ class TestHeadersBase(TestBaseClass):
         return e
 
 
+# @pytest.mark.sio
 class TestObjectHeaders(TestHeadersBase):
     """
     response = client.put_object(
@@ -380,12 +382,9 @@ class TestObjectHeaders(TestHeadersBase):
         client.put_object(Bucket=bucket_name, Key=key_name, Body='bar')
 
     @tag('auth_common')
-    @pytest.mark.fails_on_sio
-    # TODO: remove 'fails_on_ess' and once we have learned how to remove the content-length header
     def test_object_create_bad_content_length_empty(self, s3cfg_global_unique):
         """
-        (operation='create w/empty content length')
-        (assertion='fails 400')
+        测试-验证上传对象时，设置Content-Length为0，请求失败，返回400响应码
         """
         e = self.add_header_create_bad_object(s3cfg_global_unique, {'Content-Length': ''})
         status, error_code = self.get_status_and_error_code(e.response)
@@ -405,8 +404,9 @@ class TestObjectHeaders(TestHeadersBase):
         self.eq(status, 400)
 
     @tag('auth_common')
-    # TODO: remove 'fails_on_ess' and once we have learned how to remove the content-length header
+    # TODO: remove 'fails_on_sio' and once we have learned how to remove the content-length header
     @pytest.mark.fails_on_sio
+    @pytest.mark.xfail(reason="用例预期失败，需要知道怎么在header中去掉content-length", run=True, strict=True)
     def test_object_create_bad_content_length_none(self, s3cfg_global_unique):
         """
         (operation='create w/no content length')
@@ -418,24 +418,27 @@ class TestObjectHeaders(TestHeadersBase):
         self.eq(error_code, 'MissingContentLength')
 
     @tag('auth_common')
-    # TODO: remove 'fails_on_ess' and once we have learned how to remove the content-length header
+    # TODO: remove 'fails_on_sio' and once we have learned how to remove the content-length header
     @pytest.mark.fails_on_sio
     def test_object_create_bad_content_length_mismatch_above(self, s3cfg_global_unique):
         """
-        (operation='create w/content length too long')
-        (assertion='fails 400')
+        测试-验证上传对象时，设置Content-Length的值大于真实对象的Content-Length，测试失败，返回400响应码
         """
-        content = 'bar'
-        length = len(content) + 1
+        # content = 'bar'
+        # length = len(content) + 1
+        # headers = {'Content-Length': str(length)}
+        #
+        # client = get_client(s3cfg_global_unique)
+        # bucket_name = self.get_new_bucket(client, s3cfg_global_unique)
+        # key_name = 'foo'
+        #
+        # add_headers = (lambda **kwargs: kwargs['params']['headers'].update(headers))
+        # client.meta.events.register('before-sign.s3.PutObject', add_headers)
+        # e = assert_raises(ClientError, client.put_object, Bucket=bucket_name, Key=key_name, Body=content)
 
-        client = get_client(s3cfg_global_unique)
-        bucket_name = self.get_new_bucket(client, s3cfg_global_unique)
-        key_name = 'foo'
-        headers = {'Content-Length': str(length)}
-        add_headers = (lambda **kwargs: kwargs['params']['headers'].update(headers))
-        client.meta.events.register('before-sign.s3.PutObject', add_headers)
+        headers = {'Content-Length': '4'}  # content is 'bar', content_length is 3, so we got 4.
+        e = self.add_header_create_bad_object(s3cfg_global_unique, headers)
 
-        e = assert_raises(ClientError, client.put_object, Bucket=bucket_name, Key=key_name, Body=content)
         status, error_code = self.get_status_and_error_code(e.response)
         self.eq(status, 400)
 
@@ -474,8 +477,9 @@ class TestObjectHeaders(TestHeadersBase):
         client.put_object(Bucket=bucket_name, Key=key_name, Body='bar')
 
     @tag('auth_common')
-    # TODO: remove 'fails_on_ess' and once we have learned how to remove the authorization header
+    # TODO: remove 'fails_on_sio' and once we have learned how to remove the authorization header
     @pytest.mark.fails_on_sio
+    @pytest.mark.xfail(reason="用例预期失败，需要知道怎么在header中去掉authorization", run=True, strict=True)
     def test_object_create_bad_authorization_empty(self, s3cfg_global_unique):
         """
         (operation='create w/empty authorization')
@@ -486,9 +490,10 @@ class TestObjectHeaders(TestHeadersBase):
         self.eq(status, 403)
 
     @tag('auth_common')
-    # TODO: remove 'fails_on_ess' and once we have learned how to pass both the 'Date' and 'X-Amz-Date' header
+    # TODO: remove 'fails_on_sio' and once we have learned how to pass both the 'Date' and 'X-Amz-Date' header
     #  during signing and not 'X-Amz-Date' before
     @pytest.mark.fails_on_sio
+    @pytest.mark.xfail(reason="用例预期失败，需要后续研究一下", run=True, strict=True)
     def test_object_create_date_and_amz_date(self, s3cfg_global_unique):
         """
         (operation='create w/date and x-amz-date')
@@ -501,8 +506,9 @@ class TestObjectHeaders(TestHeadersBase):
         client.put_object(Bucket=bucket_name, Key=key_name, Body='bar')
 
     @tag('auth_common')
-    # TODO: remove 'fails_on_ess' and once we have learned how to pass both the 'Date' and 'X-Amz-Date' header during signing and not 'X-Amz-Date' before
+    # TODO: remove 'fails_on_sio' and once we have learned how to pass both the 'Date' and 'X-Amz-Date' header during signing and not 'X-Amz-Date' before
     @pytest.mark.fails_on_sio
+    @pytest.mark.xfail(reason="用例预期失败，需要后续研究一下", run=True, strict=True)
     def test_object_create_amz_date_and_no_date(self, s3cfg_global_unique):
         """
         (operation='create w/x-amz-date and no date')
@@ -515,8 +521,9 @@ class TestObjectHeaders(TestHeadersBase):
 
     # the teardown is really messed up here. check it out
     @tag('auth_common')
-    # TODO: remove 'fails_on_ess' and once we have learned how to remove the authorization header
+    # TODO: remove 'fails_on_sio' and once we have learned how to remove the authorization header
     @pytest.mark.fails_on_sio
+    @pytest.mark.xfail(reason="用例预期失败，需要知道怎么在header中去掉authorization字段", run=True, strict=True)
     def test_object_create_bad_authorization_none(self, s3cfg_global_unique):
         """
         (operation='create w/no authorization')
@@ -530,7 +537,7 @@ class TestObjectHeaders(TestHeadersBase):
 class TestBucketHeaders(TestHeadersBase):
 
     @tag('auth_common')
-    # TODO: remove 'fails_on_ess' and once we have learned how to remove the content-length header
+    # TODO: remove 'fails_on_sio' and once we have learned how to remove the content-length header
     @pytest.mark.fails_on_sio
     def test_bucket_create_content_length_none(self, s3cfg_global_unique):
         """
@@ -541,7 +548,7 @@ class TestBucketHeaders(TestHeadersBase):
         self.remove_header_create_bucket(s3cfg_global_unique, remove)
 
     @tag('auth_common')
-    # TODO: remove 'fails_on_ess' and once we have learned how to remove the content-length header
+    # TODO: remove 'fails_on_sio' and once we have learned how to remove the content-length header
     @pytest.mark.fails_on_sio
     def test_object_acl_create_content_length_none(self, s3cfg_global_unique):
         """
@@ -629,7 +636,7 @@ class TestBucketHeaders(TestHeadersBase):
         self.eq(status, 400)
 
     @tag('auth_common')
-    # TODO: remove 'fails_on_ess' and once we have learned how to remove the content-length header
+    # TODO: remove 'fails_on_sio' and once we have learned how to remove the content-length header
     @pytest.mark.fails_on_sio
     def test_bucket_create_bad_content_length_none(self, s3cfg_global_unique):
         """
@@ -640,8 +647,9 @@ class TestBucketHeaders(TestHeadersBase):
         self.remove_header_create_bucket(s3cfg_global_unique, remove)
 
     @tag('auth_common')
-    # TODO: remove 'fails_on_ess' and once we have learned how to manipulate the authorization header
+    # TODO: remove 'fails_on_sio' and once we have learned how to manipulate the authorization header
     @pytest.mark.fails_on_sio
+    @pytest.mark.xfail(reason="用例预期失败，需要知道怎么在header中操作authorization字段", run=True, strict=True)
     def test_bucket_create_bad_authorization_empty(self, s3cfg_global_unique):
         """
         (operation='create w/empty authorization')
@@ -654,8 +662,9 @@ class TestBucketHeaders(TestHeadersBase):
         self.eq(error_code, 'AccessDenied')
 
     @tag('auth_common')
-    # TODO: remove 'fails_on_ess' and once we have learned how to manipulate the authorization header
+    # TODO: remove 'fails_on_sio' and once we have learned how to manipulate the authorization header
     @pytest.mark.fails_on_sio
+    @pytest.mark.xfail(reason="用例预期失败，需要知道怎么在header中操作authorization字段", run=True, strict=True)
     def test_bucket_create_bad_authorization_none(self, s3cfg_global_unique):
         """
         (operation='create w/no authorization')
@@ -680,8 +689,9 @@ class TestBucketHeaders(TestHeadersBase):
         self.eq(error_code, 'InvalidDigest')
 
     @tag('auth_aws2')
-    # TODO: remove 'fails_on_ess' and once we have learned how to manipulate the Content-Length header
+    # TODO: remove 'fails_on_sio' and once we have learned how to manipulate the Content-Length header
     @pytest.mark.fails_on_sio
+    @pytest.mark.xfail(reason="用例预期失败，需要知道怎么在header中操作Content-Length字段", run=True, strict=True)
     def test_object_create_bad_content_length_mismatch_below_aws2(self, s3cfg_global_unique):
         """
         (operation='create w/content length too short')
@@ -697,8 +707,9 @@ class TestBucketHeaders(TestHeadersBase):
         self.eq(error_code, 'BadDigest')
 
     @tag('auth_aws2')
-    # TODO: remove 'fails_on_ess' and once we have learned how to manipulate the authorization header
+    # TODO: remove 'fails_on_sio' and once we have learned how to manipulate the authorization header
     @pytest.mark.fails_on_sio
+    @pytest.mark.xfail(reason="用例预期失败，需要知道怎么在header中操作authorization字段", run=True, strict=True)
     def test_object_create_bad_authorization_incorrect_aws2(self, s3cfg_global_unique):
         """
         (operation='create w/incorrect authorization')
@@ -712,8 +723,9 @@ class TestBucketHeaders(TestHeadersBase):
         self.eq(error_code, 'InvalidDigest')
 
     @tag('auth_aws2')
-    # TODO: remove 'fails_on_ess' and once we have learned how to manipulate the authorization header
+    # TODO: remove 'fails_on_sio' and once we have learned how to manipulate the authorization header
     @pytest.mark.fails_on_sio
+    @pytest.mark.xfail(reason="用例预期失败，需要知道怎么在header中操作authorization字段", run=True, strict=True)
     def test_object_create_bad_authorization_invalid_aws2(self, s3cfg_global_unique):
         """
         (operation='create w/invalid authorization')
@@ -775,8 +787,9 @@ class TestBucketHeaders(TestHeadersBase):
         self.eq(error_code, 'AccessDenied')
 
     @tag('auth_aws2')
-    # TODO: remove 'fails_on_ess' and once we have learned how to remove the date header
+    # TODO: remove 'fails_on_sio' and once we have learned how to remove the date header
     @pytest.mark.fails_on_sio
+    @pytest.mark.xfail(reason="用例预期失败，需要知道怎么在header中去掉date字段", run=True, strict=True)
     def test_object_create_bad_date_none_aws2(self, s3cfg_global_unique):
         """
         (operation='create w/no date')
@@ -829,8 +842,9 @@ class TestBucketHeaders(TestHeadersBase):
         self.eq(error_code, 'RequestTimeTooSkewed')
 
     @tag('auth_aws2')
-    # TODO: remove 'fails_on_ess' and once we have learned how to remove the date header
+    # TODO: remove 'fails_on_sio' and once we have learned how to remove the date header
     @pytest.mark.fails_on_sio
+    @pytest.mark.xfail(reason="用例预期失败，需要知道怎么在header中去掉date字段", run=True, strict=True)
     def test_bucket_create_bad_authorization_invalid_aws2(self, s3cfg_global_unique):
         """
         (operation='create w/invalid authorization')
@@ -890,8 +904,9 @@ class TestBucketHeaders(TestHeadersBase):
         self.eq(error_code, 'AccessDenied')
 
     @tag('auth_aws2')
-    # TODO: remove 'fails_on_ess' and once we have learned how to remove the date header
+    # TODO: remove 'fails_on_sio' and once we have learned how to remove the date header
     @pytest.mark.fails_on_sio
+    @pytest.mark.xfail(reason="用例预期失败，需要知道怎么在header中去掉date字段", run=True, strict=True)
     def test_bucket_create_bad_date_none_aws2(self, s3cfg_global_unique):
         """
         (operation='create w/no date')

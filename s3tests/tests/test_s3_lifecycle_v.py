@@ -187,7 +187,7 @@ class TestLifecycleLowLevel(TestLifecycleBase):
 
     def test_lifecycle_set(self, s3cfg_global_unique):
         """
-        测试-设置存储桶生命周期；
+        测试-设置存储桶生命周期；Expiration(Days)+Prefix+Status(Enabled/Disabled)
         """
         client = get_client(s3cfg_global_unique)
         bucket_name = self.get_new_bucket(client, s3cfg_global_unique)
@@ -199,7 +199,7 @@ class TestLifecycleLowLevel(TestLifecycleBase):
 
     def test_lifecycle_get(self, s3cfg_global_unique):
         """
-        测试-获取存储桶生命周期；
+        测试-获取存储桶生命周期；Expiration(Days)+Prefix+Status(Enabled)
         """
         client = get_client(s3cfg_global_unique)
         bucket_name = self.get_new_bucket(client, s3cfg_global_unique)
@@ -212,7 +212,7 @@ class TestLifecycleLowLevel(TestLifecycleBase):
 
     def test_lifecycle_get_no_id(self, s3cfg_global_unique):
         """
-        测试-验证设置的生命周期各项是否正确（不包含ID，因为ID是随机的）；
+        测试-验证设置的生命周期各项是否正确（设置Rules时不填写ID，ID会随机生成）；
         """
         client = get_client(s3cfg_global_unique)
         bucket_name = self.get_new_bucket(client, s3cfg_global_unique)
@@ -257,8 +257,7 @@ class TestLifecycleLowLevel(TestLifecycleBase):
 
     def test_lifecycle_id_too_long(self, s3cfg_global_unique):
         """
-        测试-生命周期的ID＞255；
-        400，InvalidArgument
+        测试-生命周期的ID＞255个字符：返回400响应码，InvalidArgument响应
         """
         client = get_client(s3cfg_global_unique)
         bucket_name = self.get_new_bucket(client, s3cfg_global_unique)
@@ -273,8 +272,7 @@ class TestLifecycleLowLevel(TestLifecycleBase):
 
     def test_lifecycle_same_id(self, s3cfg_global_unique):
         """
-        测试-生命周期设置相同的ID；
-        400，InvalidArgument
+        测试-生命周期设置Rules时，填写相同的ID：400，InvalidArgument
         """
         client = get_client(s3cfg_global_unique)
         bucket_name = self.get_new_bucket(client, s3cfg_global_unique)
@@ -290,8 +288,7 @@ class TestLifecycleLowLevel(TestLifecycleBase):
 
     def test_lifecycle_invalid_status(self, s3cfg_global_unique):
         """
-        测试-生命周期设置无效的Status；
-        400， MalformedXML
+        测试-生命周期设置无效的Status（非 Enabled/Disabled）：400， MalformedXML
         """
         client = get_client(s3cfg_global_unique)
         bucket_name = self.get_new_bucket(client, s3cfg_global_unique)
@@ -324,7 +321,7 @@ class TestLifecycleLowLevel(TestLifecycleBase):
 
     def test_lifecycle_set_date(self, s3cfg_global_unique):
         """
-        测试-生命周期设置Date
+        测试-生命周期设置date：Expiration+Date+Prefix+Status(Enabled)
         """
         client = get_client(s3cfg_global_unique)
         bucket_name = self.get_new_bucket(client, s3cfg_global_unique)
@@ -353,7 +350,7 @@ class TestLifecycleLowLevel(TestLifecycleBase):
 
     def test_lifecycle_set_multipart(self, s3cfg_global_unique):
         """
-        测试-验证设置生命周期参数：AbortIncompleteMultipartUpload 是否成功
+        测试-验证设置生命周期：Rules里添加参数AbortIncompleteMultipartUpload
         """
         client = get_client(s3cfg_global_unique)
         bucket_name = self.get_new_bucket(client, s3cfg_global_unique)
@@ -367,10 +364,12 @@ class TestLifecycleLowLevel(TestLifecycleBase):
         response = client.put_bucket_lifecycle_configuration(Bucket=bucket_name, LifecycleConfiguration=lifecycle)
         self.eq(response['ResponseMetadata']['HTTPStatusCode'], 200)
 
+    # TODO: 添加其他校验条件，如单桶添加生命周期规则上限等
 
+
+@pytest.mark.sio
 class TestLifecycleHighLevel(TestLifecycleBase):
 
-    @pytest.mark.sio
     @pytest.mark.pass_on_sio  # Bug Fixed, on Version: v2.4.0.0
     def test_lifecycle_expiration_days0(self, s3cfg_global_unique):
         """
@@ -395,7 +394,6 @@ class TestLifecycleHighLevel(TestLifecycleBase):
 
         self.eq(response_code, 'InvalidArgument')
 
-    @pytest.mark.sio
     @pytest.mark.fails_on_sio
     @pytest.mark.xfail(reason="未返回header：x-amz-expiration，不符合S3标准", run=True, strict=True)
     def test_lifecycle_expiration_header_put(self, s3cfg_global_unique):
@@ -417,7 +415,6 @@ class TestLifecycleHighLevel(TestLifecycleBase):
         response = self.setup_lifecycle_expiration(client, bucket_name, 'rule1', 1, 'days1/')
         self.eq(self.check_lifecycle_expiration_header(response, now, 'rule1', 1), True)
 
-    @pytest.mark.sio
     @pytest.mark.fails_on_sio
     @pytest.mark.xfail(reason="未返回header：x-amz-expiration，不符合S3标准", run=True, strict=True)
     def test_lifecycle_expiration_header_head(self, s3cfg_global_unique):
@@ -438,7 +435,6 @@ class TestLifecycleHighLevel(TestLifecycleBase):
         self.eq(response['ResponseMetadata']['HTTPStatusCode'], 200)
         self.eq(self.check_lifecycle_expiration_header(response, now, 'rule1', 1), True)
 
-    @pytest.mark.sio
     def test_lifecycle_transition_set_invalid_date(self, s3cfg_global_unique):
         """
         测试-设置生命周期的转储日期为无效的Date(not iso8601 date)；
@@ -456,7 +452,6 @@ class TestLifecycleHighLevel(TestLifecycleBase):
         self.eq(status, 400)
         self.eq(error_code, "MalformedXML")
 
-    @pytest.mark.sio
     @pytest.mark.fails_on_sio
     @pytest.mark.xfail(reason="未返回header：x-amz-expiration，不符合S3标准", run=True, strict=True)
     def test_lifecycle_expiration_header_tags_head(self, s3cfg_global_unique):
@@ -520,7 +515,6 @@ class TestLifecycleHighLevel(TestLifecycleBase):
         self.eq(response['ResponseMetadata']['HTTPStatusCode'], 200)
         self.eq(self.check_lifecycle_expiration_header(response, datetime.datetime.now(None), 'rule1', 1), False)
 
-    @pytest.mark.sio
     @pytest.mark.fails_on_sio
     @pytest.mark.xfail(reason="未返回header：x-amz-expiration，不符合S3标准", run=True, strict=True)
     def test_lifecycle_expiration_header_and_tags_head(self, s3cfg_global_unique):
@@ -577,7 +571,6 @@ class TestLifecycleHighLevel(TestLifecycleBase):
         self.eq(response['ResponseMetadata']['HTTPStatusCode'], 200)
         self.eq(self.check_lifecycle_expiration_header(response, datetime.datetime.now(None), 'rule1', 1), True)
 
-    @pytest.mark.sio
     def test_lifecycle_set_non_current(self, s3cfg_global_unique):
         """
         测试-验证设置生命周期时添加NoncurrentVersionExpiration参数；
@@ -594,7 +587,6 @@ class TestLifecycleHighLevel(TestLifecycleBase):
         response = client.put_bucket_lifecycle_configuration(Bucket=bucket_name, LifecycleConfiguration=lifecycle)
         self.eq(response['ResponseMetadata']['HTTPStatusCode'], 200)
 
-    @pytest.mark.sio
     def test_lifecycle_set_delete_marker(self, s3cfg_global_unique):
         """
         测试-验证设置生命周期时添加ExpiredObjectDeleteMarker参数
@@ -614,7 +606,6 @@ class TestLifecycleHighLevel(TestLifecycleBase):
         response = client.put_bucket_lifecycle_configuration(Bucket=bucket_name, LifecycleConfiguration=lifecycle)
         self.eq(response['ResponseMetadata']['HTTPStatusCode'], 200)
 
-    @pytest.mark.sio
     def test_lifecycle_set_filter(self, s3cfg_global_unique):
         """
         测试-验证设置生命周期中ExpiredObjectDeleteMarker参数+Filter参数
@@ -627,7 +618,6 @@ class TestLifecycleHighLevel(TestLifecycleBase):
         response = client.put_bucket_lifecycle_configuration(Bucket=bucket_name, LifecycleConfiguration=lifecycle)
         self.eq(response['ResponseMetadata']['HTTPStatusCode'], 200)
 
-    @pytest.mark.sio
     def test_lifecycle_set_empty_filter(self, s3cfg_global_unique):
         """
         测试-验证设置生命周期中ExpiredObjectDeleteMarker参数+空Filter+Status参数
@@ -639,7 +629,6 @@ class TestLifecycleHighLevel(TestLifecycleBase):
         response = client.put_bucket_lifecycle_configuration(Bucket=bucket_name, LifecycleConfiguration=lifecycle)
         self.eq(response['ResponseMetadata']['HTTPStatusCode'], 200)
 
-    @pytest.mark.sio
     def test_lifecycle_set_noncurrent_transition(self, s3cfg_global_unique):
         """
         测试-验证设置生命周期转储参数NoncurrentVersionTransitions和NoncurrentVersionExpiration成功
@@ -677,10 +666,10 @@ class TestLifecycleHighLevel(TestLifecycleBase):
         self.eq(response['ResponseMetadata']['HTTPStatusCode'], 200)
 
 
-@pytest.mark.lifecycle_need_speedup
+@pytest.mark.sio
+@pytest.mark.need_speedup
 class TestLifecycleNeedSpeedup(TestLifecycleBase):
 
-    @pytest.mark.sio
     def test_lifecycle_expiration(self, s3cfg_global_unique):
         """
         测试-生命周期-过期规则，需要设置加速（10秒为1天）；
@@ -716,7 +705,6 @@ class TestLifecycleNeedSpeedup(TestLifecycleBase):
         self.eq(len(keep2_objects), 4)
         self.eq(len(expire3_objects), 2)
 
-    @pytest.mark.sio
     def test_lifecycle_v2_expiration(self, s3cfg_global_unique):
         """
         测试-生命周期-过期规则，需要设置加速（10秒为1天）；
@@ -752,7 +740,6 @@ class TestLifecycleNeedSpeedup(TestLifecycleBase):
         self.eq(len(keep2_objects), 4)
         self.eq(len(expire3_objects), 2)
 
-    @pytest.mark.sio
     def test_lifecycle_expiration_versioning_enabled(self, s3cfg_global_unique):
         """
         测试-生命周期过期+多版本对象，需要设置加速（10秒为1天）；
@@ -776,7 +763,7 @@ class TestLifecycleNeedSpeedup(TestLifecycleBase):
         self.eq(len(versions), 1)
         self.eq(len(delete_markers), 1)
 
-    @pytest.mark.sio_maybe
+    # @pytest.mark.sio_maybe
     def test_lifecycle_expiration_with_one_tag(self, s3cfg_global_unique):
         """
         测试-生命周期过期规则+对象tag(1个)，需要设置加速（10秒为1天）；
@@ -826,7 +813,7 @@ class TestLifecycleNeedSpeedup(TestLifecycleBase):
 
         self.eq(len(expire_objects), 0)
 
-    @pytest.mark.sio_maybe
+    # @pytest.mark.sio_maybe
     def test_lifecycle_expiration_with_two_tags(self, s3cfg_global_unique):
         """
         测试-生命周期过期规则+对象tag（2个），需要设置加速（10秒为1天）；
@@ -844,7 +831,7 @@ class TestLifecycleNeedSpeedup(TestLifecycleBase):
 
         self.eq(len(expire1_objects), 1)
 
-    @pytest.mark.sio_maybe
+    # @pytest.mark.sio_maybe
     def test_lifecycle_expiration_versioned_with_two_tags(self, s3cfg_global_unique):
         """
         测试-生命周期过期规则+对象多版本+对象tag（2个），需要设置加速（10秒为1天）；
@@ -864,7 +851,7 @@ class TestLifecycleNeedSpeedup(TestLifecycleBase):
 
         self.eq(len(expire1_objects), 1)
 
-    @pytest.mark.sio_maybe
+    # @pytest.mark.sio_maybe
     def test_lifecycle_expiration_non_cur_with_one_tag(self, s3cfg_global_unique):
         """
         测试-生命周期NonCurrent过期规则+对象多版本+对象tag（1个），需要设置加速（10秒为1天）；
@@ -891,7 +878,6 @@ class TestLifecycleNeedSpeedup(TestLifecycleBase):
         # at T+60, only the current object version should exist
         self.eq(num_objs, 1)
 
-    @pytest.mark.sio
     def test_lifecycle_expiration_date(self, s3cfg_global_unique):
         """
         测试-验证生命周期设置过期日期是否真实生效，需要设置加速（10秒为1天）；
@@ -914,7 +900,7 @@ class TestLifecycleNeedSpeedup(TestLifecycleBase):
         self.eq(len(init_objects), 2)
         self.eq(len(expire_objects), 1)
 
-    @pytest.mark.sio_maybe
+    # @pytest.mark.sio_maybe
     def test_lifecycle_non_cur_expiration(self, s3cfg_global_unique):
         """
         测试-验证生命周期的NoncurrentVersionExpiration规则+多版本，需要设置加速（10秒为1天）；
@@ -949,7 +935,7 @@ class TestLifecycleNeedSpeedup(TestLifecycleBase):
         self.eq(len(init_versions), 6)
         self.eq(len(expire_versions), 4)
 
-    @pytest.mark.sio_maybe
+    # @pytest.mark.sio_maybe
     def test_lifecycle_delete_marker_expiration(self, s3cfg_global_unique):
         """
         测试-验证生命周期ExpiredObjectDeleteMarker+多版本，需要设置加速（10s为1天）
@@ -983,7 +969,6 @@ class TestLifecycleNeedSpeedup(TestLifecycleBase):
         self.eq(len(total_init_versions), 4)
         self.eq(len(total_expire_versions), 2)
 
-    @pytest.mark.sio
     def test_lifecycle_transition(self, s3cfg_global_unique):
         """
         测试-验证生命周期转储规则生效，需要设置加速（10s为1天）
@@ -1032,7 +1017,6 @@ class TestLifecycleNeedSpeedup(TestLifecycleBase):
         self.eq(len(expire3_keys[sc[1]]), 2)
         self.eq(len(expire3_keys[sc[2]]), 2)
 
-    @pytest.mark.sio
     def test_lifecycle_transition_single_rule_multi_trans(self, s3cfg_global_unique):
         """
         测试-验证生命周期转储规则生效，需要设置加速（10s为1天）
@@ -1078,7 +1062,7 @@ class TestLifecycleNeedSpeedup(TestLifecycleBase):
         self.eq(len(expire3_keys[sc[1]]), 0)
         self.eq(len(expire3_keys[sc[2]]), 2)
 
-    @pytest.mark.sio_maybe
+    # @pytest.mark.sio_maybe
     def test_lifecycle_noncur_transition(self, s3cfg_global_unique):
         """
         测试-验证生命周期参数NoncurrentVersionTransitions和NoncurrentVersionExpiration生效，需要设置加速（10s为1天）；
@@ -1139,7 +1123,6 @@ class TestLifecycleNeedSpeedup(TestLifecycleBase):
         self.eq(len(expire1_keys[sc[1]]), 0)
         self.eq(len(expire1_keys[sc[2]]), 0)
 
-    @pytest.mark.sio
     def test_lifecycle_multipart_expiration(self, s3cfg_global_unique):
         """
         测试-验证设置生命周期参数：AbortIncompleteMultipartUpload是否符合预期，
@@ -1174,4 +1157,3 @@ class TestLifecycleNeedSpeedup(TestLifecycleBase):
         expired_uploads = response['Uploads']
         self.eq(len(init_uploads), 2)
         self.eq(len(expired_uploads), 1)
-

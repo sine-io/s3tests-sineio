@@ -1,4 +1,3 @@
-
 import datetime
 
 import pytest
@@ -162,9 +161,9 @@ class TestBucketBase(TestBaseClass):
         self.eq(response['ResponseMetadata']['HTTPStatusCode'], 200)
 
 
+@pytest.mark.sio
 class TestBucketOpts(TestBucketBase):
 
-    @pytest.mark.sio
     def test_bucket_list_empty(self, s3cfg_global_unique):
         """
         测试-验证列出空存储桶对象，返回no contents
@@ -174,7 +173,6 @@ class TestBucketOpts(TestBucketBase):
 
         self.eq(is_empty, True)
 
-    @pytest.mark.sio
     def test_bucket_list_distinct(self, s3cfg_global_unique):
         """
         测试-验证对空与非空存储桶进行列出对象操作，返回不同的contents
@@ -189,7 +187,6 @@ class TestBucketOpts(TestBucketBase):
         self.eq(is_empty1, False)
         self.eq(is_empty2, True)
 
-    @pytest.mark.sio
     def test_bucket_list_many(self, s3cfg_global_unique):
         """
         测试-验证list-objects的MaxKeys和Marker参数
@@ -210,7 +207,6 @@ class TestBucketOpts(TestBucketBase):
         self.eq(response['IsTruncated'], False)
         self.eq(keys, ['foo'])
 
-    @pytest.mark.sio
     def test_bucket_list_v2_many(self, s3cfg_global_unique):
         """
         测试-验证list-objects-v2的MaxKeys和StartAfter参数
@@ -231,7 +227,6 @@ class TestBucketOpts(TestBucketBase):
         self.eq(response['IsTruncated'], False)
         self.eq(keys, ['foo'])
 
-    @pytest.mark.sio
     def test_basic_key_count(self, s3cfg_global_unique):
         """
         测试-验证list_objects_v2方法
@@ -249,7 +244,6 @@ class TestBucketOpts(TestBucketBase):
         # Say you ask for 50 keys, your result will include less than equals 50 keys
         self.eq(resp['KeyCount'], 5)
 
-    @pytest.mark.sio
     def test_bucket_list_delimiter_basic(self, s3cfg_global_unique):
         """
         测试-验证list_objects的Delimiter参数
@@ -267,7 +261,6 @@ class TestBucketOpts(TestBucketBase):
         self.eq(len(prefixes), 2)
         self.eq(prefixes, ['foo/', 'quux/'])
 
-    @pytest.mark.sio
     @pytest.mark.pass_on_sio  # Bug fixed on version: v2.4.0.0
     def test_bucket_list_v2_delimiter_basic(self, s3cfg_global_unique):
         """
@@ -291,7 +284,6 @@ class TestBucketOpts(TestBucketBase):
         self.eq(prefixes, ['foo/', 'quux/'])
         self.eq(response['KeyCount'], len(prefixes) + len(keys))
 
-    @pytest.mark.sio
     @pytest.mark.pass_on_sio  # Bug fixed on version: v2.4.0.0
     def test_bucket_list_v2_encoding_basic(self, s3cfg_global_unique):
         """
@@ -313,7 +305,6 @@ class TestBucketOpts(TestBucketBase):
 
         self.eq(prefixes, ['foo%2B1/', 'foo/', 'quux%20ab/'])
 
-    @pytest.mark.sio
     @pytest.mark.pass_on_sio  # Bug fixed on version: v2.4.0.0
     def test_bucket_list_encoding_basic(self, s3cfg_global_unique):
         """
@@ -333,7 +324,6 @@ class TestBucketOpts(TestBucketBase):
 
         self.eq(prefixes, ['foo%2B1/', 'foo/', 'quux%20ab/'])
 
-    @pytest.mark.sio
     def test_bucket_list_delimiter_prefix(self, s3cfg_global_unique):
         """
         测试-验证list_objects的Delimiter，Marker，MaxKeys，Prefix参数组合
@@ -376,7 +366,6 @@ class TestBucketOpts(TestBucketBase):
             client, bucket_name, prefix, delim, '', 2, False, ['boo/bar'], ['boo/baz/'], None
         )
 
-    @pytest.mark.sio
     def test_bucket_list_v2_delimiter_prefix(self, s3cfg_global_unique):
         """
         测试-验证list_objects-v2的Delimiter，Marker，MaxKeys，Prefix参数组合
@@ -411,7 +400,6 @@ class TestBucketOpts(TestBucketBase):
         self.validate_bucket_list_v2(
             client, bucket_name, prefix, delim, None, 2, False, ['boo/bar'], ['boo/baz/'], last=True)
 
-    @pytest.mark.sio
     def test_bucket_list_v2_delimiter_prefix_ends_with_delimiter(self, s3cfg_global_unique):
         """
         测试-验证list_objects-v2的prefix and delimiter handling when object ends with delimiter
@@ -422,7 +410,6 @@ class TestBucketOpts(TestBucketBase):
         self.validate_bucket_list_v2(
             client, bucket_name, 'asdf/', '/', None, 1000, False, ['asdf/'], [], last=True)
 
-    @pytest.mark.sio
     def test_bucket_list_delimiter_prefix_ends_with_delimiter(self, s3cfg_global_unique):
         """
         测试-验证list_objects的prefix and delimiter handling when object ends with delimiter
@@ -433,7 +420,6 @@ class TestBucketOpts(TestBucketBase):
         self.validate_bucket_list(
             client, bucket_name, 'asdf/', '/', '', 1000, False, ['asdf/'], [], None)
 
-    @pytest.mark.sio
     def test_bucket_list_delimiter_alt(self, s3cfg_global_unique):
         """
         测试-验证list-objects的non_slash_delimiter_characters
@@ -454,7 +440,6 @@ class TestBucketOpts(TestBucketBase):
         self.eq(len(prefixes), 2)
         self.eq(prefixes, ['ba', 'ca'])
 
-    @pytest.mark.sio
     def test_bucket_list_v2_delimiter_alt(self, s3cfg_global_unique):
         """
         测试-验证list-objects-v2的non_slash_delimiter_characters
@@ -475,7 +460,6 @@ class TestBucketOpts(TestBucketBase):
         self.eq(len(prefixes), 2)
         self.eq(prefixes, ['ba', 'ca'])
 
-    @pytest.mark.sio
     def test_bucket_list_delimiter_prefix_underscore(self, s3cfg_global_unique):
         """
         测试-验证list-objects的prefixes_starting_with_underscore
@@ -509,7 +493,6 @@ class TestBucketOpts(TestBucketBase):
         self.validate_bucket_list(
             client, bucket_name, prefix, delim, '', 2, False, ['_under1/bar'], ['_under1/baz/'], None)
 
-    @pytest.mark.sio
     def test_bucket_list_v2_delimiter_prefix_underscore(self, s3cfg_global_unique):
         """
         测试-验证list-objects-v2的prefixes_starting_with_underscore
@@ -544,7 +527,6 @@ class TestBucketOpts(TestBucketBase):
         self.validate_bucket_list_v2(
             client, bucket_name, prefix, delim, None, 2, False, ['_under1/bar'], ['_under1/baz/'], last=True)
 
-    @pytest.mark.sio
     def test_bucket_list_delimiter_percentage(self, s3cfg_global_unique):
         """
         测试-验证list-objects的percentage_delimiter_characters
@@ -564,7 +546,6 @@ class TestBucketOpts(TestBucketBase):
         # bar, baz, and cab should be broken up by the 'a' delimiters
         self.eq(prefixes, ['b%', 'c%'])
 
-    @pytest.mark.sio
     def test_bucket_list_v2_delimiter_percentage(self, s3cfg_global_unique):
         """
         测试-验证list-objects-v2的percentage_delimiter_characters
@@ -585,7 +566,6 @@ class TestBucketOpts(TestBucketBase):
         # bar, baz, and cab should be broken up by the 'a' delimiters
         self.eq(prefixes, ['b%', 'c%'])
 
-    @pytest.mark.sio
     def test_bucket_list_delimiter_whitespace(self, s3cfg_global_unique):
         """
         测试-验证list-objects的whitespace_delimiter_characters
@@ -605,7 +585,6 @@ class TestBucketOpts(TestBucketBase):
         # bar, baz, and cab should be broken up by the 'a' delimiters
         self.eq(prefixes, ['b ', 'c '])
 
-    @pytest.mark.sio
     def test_bucket_list_v2_delimiter_whitespace(self, s3cfg_global_unique):
         """
         测试-验证list-objects-v2的whitespace_delimiter_characters
@@ -625,7 +604,6 @@ class TestBucketOpts(TestBucketBase):
         # bar, baz, and cab should be broken up by the 'a' delimiters
         self.eq(prefixes, ['b ', 'c '])
 
-    @pytest.mark.sio
     def test_bucket_list_delimiter_dot(self, s3cfg_global_unique):
         """
         测试-验证list-objects的dot_delimiter_characters
@@ -645,7 +623,6 @@ class TestBucketOpts(TestBucketBase):
         # bar, baz, and cab should be broken up by the 'a' delimiters
         self.eq(prefixes, ['b.', 'c.'])
 
-    @pytest.mark.sio
     def test_bucket_list_v2_delimiter_dot(self, s3cfg_global_unique):
         """
         测试-验证list-objects-v2的dot_delimiter_characters
@@ -665,7 +642,6 @@ class TestBucketOpts(TestBucketBase):
         # bar, baz, and cab should be broken up by the 'a' delimiters
         self.eq(prefixes, ['b.', 'c.'])
 
-    @pytest.mark.sio
     def test_bucket_list_delimiter_unreadable(self, s3cfg_global_unique):
         """
         测试-验证list-objects的non_printable_delimiter_can_be_specified
@@ -682,7 +658,6 @@ class TestBucketOpts(TestBucketBase):
         self.eq(keys, keys_in)
         self.eq(prefixes, [])
 
-    @pytest.mark.sio
     def test_bucket_list_v2_delimiter_unreadable(self, s3cfg_global_unique):
         """
         测试-验证list-objects-v2的non_printable_delimiter_can_be_specified
@@ -699,7 +674,6 @@ class TestBucketOpts(TestBucketBase):
         self.eq(keys, keys_in)
         self.eq(prefixes, [])
 
-    @pytest.mark.sio
     def test_bucket_list_delimiter_empty(self, s3cfg_global_unique):
         """
         测试-验证list-objects的empty_delimiter_can_be_specified
@@ -717,7 +691,6 @@ class TestBucketOpts(TestBucketBase):
         self.eq(keys, keys_in)
         self.eq(prefixes, [])
 
-    @pytest.mark.sio
     def test_bucket_list_v2_delimiter_empty(self, s3cfg_global_unique):
         """
         测试-验证list-objects-v2的empty_delimiter_can_be_specified
@@ -735,7 +708,6 @@ class TestBucketOpts(TestBucketBase):
         self.eq(keys, keys_in)
         self.eq(prefixes, [])
 
-    @pytest.mark.sio
     def test_bucket_list_delimiter_none(self, s3cfg_global_unique):
         """
         测试-验证list-objects的unspecified_delimiter_defaults_to_none
@@ -753,7 +725,6 @@ class TestBucketOpts(TestBucketBase):
         self.eq(keys, keys_in)
         self.eq(prefixes, [])
 
-    @pytest.mark.sio
     def test_bucket_list_v2_delimiter_none(self, s3cfg_global_unique):
         """
         测试-验证list-objects-v2的unspecified_delimiter_defaults_to_none
@@ -771,7 +742,6 @@ class TestBucketOpts(TestBucketBase):
         self.eq(keys, keys_in)
         self.eq(prefixes, [])
 
-    @pytest.mark.sio
     def test_bucket_list_v2_fetch_owner_not_empty(self, s3cfg_global_unique):
         """
         测试-验证list_objects_v2的FetchOwner is True
@@ -784,7 +754,6 @@ class TestBucketOpts(TestBucketBase):
         objs_list = response['Contents']
         self.eq('Owner' in objs_list[0], True)
 
-    @pytest.mark.sio
     def test_bucket_list_v2_fetch_owner_default_empty(self, s3cfg_global_unique):
         """
         测试-验证list_objects_v2的FetchOwner 默认为False；
@@ -799,7 +768,6 @@ class TestBucketOpts(TestBucketBase):
         objs_list = response['Contents']
         self.eq('Owner' in objs_list[0], False)
 
-    @pytest.mark.sio
     def test_bucket_list_v2_fetch_owner_empty(self, s3cfg_global_unique):
         """
         测试-验证list_objects_v2的FetchOwner 设置为False
@@ -812,7 +780,6 @@ class TestBucketOpts(TestBucketBase):
         objs_list = response['Contents']
         self.eq('Owner' in objs_list[0], False)
 
-    @pytest.mark.sio
     def test_bucket_list_delimiter_not_exist(self, s3cfg_global_unique):
         """
         测试-验证list_objects的unused_delimiter_is_not_found
@@ -830,7 +797,6 @@ class TestBucketOpts(TestBucketBase):
         self.eq(keys, keys_in)
         self.eq(prefixes, [])
 
-    @pytest.mark.sio
     def test_bucket_list_v2_delimiter_not_exist(self, s3cfg_global_unique):
         """
         测试-验证list_objects-v2的unused_delimiter_is_not_found
@@ -848,7 +814,6 @@ class TestBucketOpts(TestBucketBase):
         self.eq(keys, keys_in)
         self.eq(prefixes, [])
 
-    @pytest.mark.sio
     def test_bucket_list_delimiter_not_skip_special(self, s3cfg_global_unique):
         """
         测试-验证list_objects的delimiter_not_skip_special_keys
@@ -867,7 +832,6 @@ class TestBucketOpts(TestBucketBase):
         self.eq(keys, keys_in2)
         self.eq(prefixes, ['0/'])
 
-    @pytest.mark.sio
     def test_bucket_list_prefix_basic(self, s3cfg_global_unique):
         """
         测试-验证list_objects的Prefix参数
@@ -884,7 +848,6 @@ class TestBucketOpts(TestBucketBase):
         self.eq(keys, ['foo/bar', 'foo/baz'])
         self.eq(prefixes, [])
 
-    @pytest.mark.sio
     def test_bucket_list_v2_prefix_basic(self, s3cfg_global_unique):
         """
         测试-验证list_objects-v2的Prefix参数
@@ -901,7 +864,6 @@ class TestBucketOpts(TestBucketBase):
         self.eq(keys, ['foo/bar', 'foo/baz'])
         self.eq(prefixes, [])
 
-    @pytest.mark.sio
     def test_bucket_list_prefix_alt(self, s3cfg_global_unique):
         """
         测试-验证list-objects的Prefix；
@@ -919,7 +881,6 @@ class TestBucketOpts(TestBucketBase):
         self.eq(keys, ['bar', 'baz'])
         self.eq(prefixes, [])
 
-    @pytest.mark.sio
     def test_bucket_list_v2_prefix_alt(self, s3cfg_global_unique):
         """
         测试-验证list-objects-v2的Prefix；
@@ -937,7 +898,6 @@ class TestBucketOpts(TestBucketBase):
         self.eq(keys, ['bar', 'baz'])
         self.eq(prefixes, [])
 
-    @pytest.mark.sio
     def test_bucket_list_prefix_empty(self, s3cfg_global_unique):
         """
         测试-验证list-objects的Prefix；empty_prefix_returns_everything
@@ -954,7 +914,6 @@ class TestBucketOpts(TestBucketBase):
         self.eq(keys, keys_in)
         self.eq(prefixes, [])
 
-    @pytest.mark.sio
     def test_bucket_list_v2_prefix_empty(self, s3cfg_global_unique):
         """
         测试-验证list-objects-v2的Prefix；empty_prefix_returns_everything
@@ -971,7 +930,6 @@ class TestBucketOpts(TestBucketBase):
         self.eq(keys, keys_in)
         self.eq(prefixes, [])
 
-    @pytest.mark.sio
     def test_bucket_list_prefix_none(self, s3cfg_global_unique):
         """
         测试-验证list-objects的Prefix；unspecified_prefix_returns_everything
@@ -988,7 +946,6 @@ class TestBucketOpts(TestBucketBase):
         self.eq(keys, keys_in)
         self.eq(prefixes, [])
 
-    @pytest.mark.sio
     def test_bucket_list_v2_prefix_none(self, s3cfg_global_unique):
         """
         测试-验证list-objects-v2的Prefix；unspecified_prefix_returns_everything
@@ -1005,7 +962,6 @@ class TestBucketOpts(TestBucketBase):
         self.eq(keys, keys_in)
         self.eq(prefixes, [])
 
-    @pytest.mark.sio
     def test_bucket_list_prefix_not_exist(self, s3cfg_global_unique):
         """
         测试-验证list-objects的Prefix；nonexistent_prefix_returns_nothing
@@ -1022,7 +978,6 @@ class TestBucketOpts(TestBucketBase):
         self.eq(keys, [])
         self.eq(prefixes, [])
 
-    @pytest.mark.sio
     def test_bucket_list_v2_prefix_not_exist(self, s3cfg_global_unique):
         """
         测试-验证list-objects-v2的Prefix；nonexistent_prefix_returns_nothing
@@ -1039,7 +994,6 @@ class TestBucketOpts(TestBucketBase):
         self.eq(keys, [])
         self.eq(prefixes, [])
 
-    @pytest.mark.sio
     def test_bucket_list_prefix_unreadable(self, s3cfg_global_unique):
         """
         测试-验证list-objects的Prefix；non_printable_prefix_can_be_specified
@@ -1056,7 +1010,6 @@ class TestBucketOpts(TestBucketBase):
         self.eq(keys, [])
         self.eq(prefixes, [])
 
-    @pytest.mark.sio
     def test_bucket_list_v2_prefix_unreadable(self, s3cfg_global_unique):
         """
         测试-验证list-object-v2的Prefix；non_printable_prefix_can_be_specified
@@ -1073,7 +1026,6 @@ class TestBucketOpts(TestBucketBase):
         self.eq(keys, [])
         self.eq(prefixes, [])
 
-    @pytest.mark.sio
     def test_bucket_list_prefix_delimiter_basic(self, s3cfg_global_unique):
         """
         测试-验证list-object的Delimiter和Prefix；returns_only_objects_directly_under_prefix
@@ -1091,7 +1043,6 @@ class TestBucketOpts(TestBucketBase):
         self.eq(keys, ['foo/bar'])
         self.eq(prefixes, ['foo/baz/'])
 
-    @pytest.mark.sio
     def test_bucket_list_v2_prefix_delimiter_basic(self, s3cfg_global_unique):
         """
         测试-验证list-object-v2的Delimiter和Prefix；returns_only_objects_directly_under_prefix
@@ -1109,7 +1060,6 @@ class TestBucketOpts(TestBucketBase):
         self.eq(keys, ['foo/bar'])
         self.eq(prefixes, ['foo/baz/'])
 
-    @pytest.mark.sio
     def test_bucket_list_prefix_delimiter_alt(self, s3cfg_global_unique):
         """
         测试-验证list-object的Delimiter和Prefix；non_slash_delimiters
@@ -1127,7 +1077,6 @@ class TestBucketOpts(TestBucketBase):
         self.eq(keys, ['bar'])
         self.eq(prefixes, ['baza'])
 
-    @pytest.mark.sio
     def test_bucket_list_v2_prefix_delimiter_alt(self, s3cfg_global_unique):
         """
         测试-验证list-object-v2的Delimiter和Prefix；non_slash_delimiters
@@ -1145,7 +1094,6 @@ class TestBucketOpts(TestBucketBase):
         self.eq(keys, ['bar'])
         self.eq(prefixes, ['baza'])
 
-    @pytest.mark.sio
     def test_bucket_list_prefix_delimiter_prefix_not_exist(self, s3cfg_global_unique):
         """
         测试-验证list-object的Delimiter和Prefix（不存在）；finds_nothing_unmatched_prefix
@@ -1161,7 +1109,6 @@ class TestBucketOpts(TestBucketBase):
         self.eq(keys, [])
         self.eq(prefixes, [])
 
-    @pytest.mark.sio
     def test_bucket_list_v2_prefix_delimiter_prefix_not_exist(self, s3cfg_global_unique):
         """
         测试-验证list-object-v2的Delimiter和Prefix（不存在）；finds_nothing_unmatched_prefix
@@ -1177,7 +1124,6 @@ class TestBucketOpts(TestBucketBase):
         self.eq(keys, [])
         self.eq(prefixes, [])
 
-    @pytest.mark.sio
     def test_bucket_list_prefix_delimiter_delimiter_not_exist(self, s3cfg_global_unique):
         """
         测试-验证list-object的Delimiter（不存在）和Prefix；overridden slash ceases to be a delimiter
@@ -1193,7 +1139,6 @@ class TestBucketOpts(TestBucketBase):
         self.eq(keys, ['b/a/c', 'b/a/g', 'b/a/r'])
         self.eq(prefixes, [])
 
-    @pytest.mark.sio
     def test_bucket_list_v2_prefix_delimiter_delimiter_not_exist(self, s3cfg_global_unique):
         """
         测试-验证list-object-v2的Delimiter（不存在）和Prefix；overridden slash ceases to be a delimiter
@@ -1209,7 +1154,6 @@ class TestBucketOpts(TestBucketBase):
         self.eq(keys, ['b/a/c', 'b/a/g', 'b/a/r'])
         self.eq(prefixes, [])
 
-    @pytest.mark.sio
     def test_bucket_list_prefix_delimiter_prefix_delimiter_not_exist(self, s3cfg_global_unique):
         """
         测试-验证list-object的Delimiter（不存在）和Prefix（不存在）；
@@ -1226,7 +1170,6 @@ class TestBucketOpts(TestBucketBase):
         self.eq(keys, [])
         self.eq(prefixes, [])
 
-    @pytest.mark.sio
     def test_bucket_list_v2_prefix_delimiter_prefix_delimiter_not_exist(self, s3cfg_global_unique):
         """
         测试-验证list-object-v2的Delimiter（不存在）和Prefix（不存在）；
@@ -1243,7 +1186,6 @@ class TestBucketOpts(TestBucketBase):
         self.eq(keys, [])
         self.eq(prefixes, [])
 
-    @pytest.mark.sio
     def test_bucket_list_max_keys_one(self, s3cfg_global_unique):
         """
         测试-验证list_objects的MaxKeys=1、Marker（第一个对象）
@@ -1266,7 +1208,6 @@ class TestBucketOpts(TestBucketBase):
         keys = self.get_keys(response)
         self.eq(keys, keys_in[1:])
 
-    @pytest.mark.sio
     def test_bucket_list_v2_max_keys_one(self, s3cfg_global_unique):
         """
         测试-验证list_objects-v2的MaxKeys=1、Marker（第一个对象）
@@ -1287,7 +1228,6 @@ class TestBucketOpts(TestBucketBase):
         keys = self.get_keys(response)
         self.eq(keys, keys_in[1:])
 
-    @pytest.mark.sio
     def test_bucket_list_max_keys_zero(self, s3cfg_global_unique):
         """
         测试-验证list_objects的MaxKeys=0
@@ -1302,7 +1242,6 @@ class TestBucketOpts(TestBucketBase):
         keys = self.get_keys(response)
         self.eq(keys, [])
 
-    @pytest.mark.sio
     def test_bucket_list_v2_max_keys_zero(self, s3cfg_global_unique):
         """
         测试-验证list_objects-v2的MaxKeys=0
@@ -1317,7 +1256,6 @@ class TestBucketOpts(TestBucketBase):
         keys = self.get_keys(response)
         self.eq(keys, [])
 
-    @pytest.mark.sio
     def test_bucket_list_max_keys_none(self, s3cfg_global_unique):
         """
         测试-验证list_objects的不设置MaxKeys；
@@ -1335,7 +1273,6 @@ class TestBucketOpts(TestBucketBase):
         self.eq(keys, keys_in)
         self.eq(response['MaxKeys'], 1000)
 
-    @pytest.mark.sio
     def test_bucket_list_v2_max_keys_none(self, s3cfg_global_unique):
         """
         测试-验证list_objects-v2的不设置MaxKeys；
@@ -1353,7 +1290,6 @@ class TestBucketOpts(TestBucketBase):
         self.eq(keys, keys_in)
         self.eq(response['MaxKeys'], 1000)
 
-    @pytest.mark.sio_maybe
     @pytest.mark.fails_on_sio
     @pytest.mark.xfail(reason="Ceph的返回里不包含Quota，需要判断是否支持此功能", run=True, strict=True)
     def test_account_usage(self, s3cfg_global_unique):
@@ -1406,7 +1342,6 @@ class TestBucketOpts(TestBucketBase):
         self.eq(summary['QuotaMaxBytesPerBucket'], '-1')
         self.eq(summary['QuotaMaxObjCountPerBucket'], '-1')
 
-    @pytest.mark.sio_maybe
     @pytest.mark.fails_on_sio
     @pytest.mark.xfail(reason="Ceph的返回里不包含Quota，需要判断是否支持此功能", run=True, strict=True)
     def test_head_bucket_usage(self, s3cfg_global_unique):
@@ -1443,7 +1378,6 @@ class TestBucketOpts(TestBucketBase):
         self.eq(_headers['X-RGW-Quota-Bucket-Size'], '-1')
         self.eq(_headers['X-RGW-Quota-Bucket-Objects'], '-1')
 
-    @pytest.mark.sio
     def test_bucket_list_unordered(self, s3cfg_global_unique):
         """
         测试-验证list-objects里添加allow-unordered=true
@@ -1499,7 +1433,6 @@ class TestBucketOpts(TestBucketBase):
         self.eq(status, 400)
         self.eq(error_code, 'InvalidArgument')
 
-    @pytest.mark.sio
     def test_bucket_list_v2_unordered(self, s3cfg_global_unique):
         """
         测试-验证list-objects-v2里添加allow-unordered=true
@@ -1555,7 +1488,6 @@ class TestBucketOpts(TestBucketBase):
         self.eq(status, 400)
         self.eq(error_code, 'InvalidArgument')
 
-    @pytest.mark.sio
     def test_bucket_list_max_keys_invalid(self, s3cfg_global_unique):
         """
         测试-验证list-objects的url地址里添加max-keys的值是无效的
@@ -1577,7 +1509,6 @@ class TestBucketOpts(TestBucketBase):
         self.eq(status, 400)
         self.eq(error_code, 'InvalidArgument')
 
-    @pytest.mark.sio
     def test_bucket_list_marker_none(self, s3cfg_global_unique):
         """
         测试-验证list-objects的默认响应中Marker是空
@@ -1589,7 +1520,6 @@ class TestBucketOpts(TestBucketBase):
         response = client.list_objects(Bucket=bucket_name)
         self.eq(response['Marker'], '')
 
-    @pytest.mark.sio
     def test_bucket_list_marker_empty(self, s3cfg_global_unique):
         """
         测试-验证list-objects的Marker设置为空字符串，并验证响应是否正确
@@ -1604,7 +1534,6 @@ class TestBucketOpts(TestBucketBase):
         keys = self.get_keys(response)
         self.eq(keys, keys_in)
 
-    @pytest.mark.sio
     def test_bucket_list_v2_continuation_token_empty(self, s3cfg_global_unique):
         """
         测试-验证list-objects-v2的ContinuationToken设置为空字符串，并验证响应是否正确；
@@ -1621,7 +1550,6 @@ class TestBucketOpts(TestBucketBase):
         keys = self.get_keys(response)
         self.eq(keys, keys_in)
 
-    @pytest.mark.sio
     def test_bucket_list_v2_continuation_token(self, s3cfg_global_unique):
         """
         测试-验证list-objects-v2的ContinuationToken设置为NextContinuationToken的值，并验证响应是否正确；
@@ -1640,7 +1568,6 @@ class TestBucketOpts(TestBucketBase):
         keys = self.get_keys(response2)
         self.eq(keys, keys_in2)
 
-    @pytest.mark.sio
     def test_bucket_list_v2_both_continuation_token_start_after(self, s3cfg_global_unique):
         """
         测试-验证list-objects-v2的StartAfter（第一个对象）和MaxKeys（1）和
@@ -1663,7 +1590,6 @@ class TestBucketOpts(TestBucketBase):
         keys = self.get_keys(response2)
         self.eq(keys, keys_in2)
 
-    @pytest.mark.sio
     def test_bucket_list_marker_unreadable(self, s3cfg_global_unique):
         """
         测试-验证list-objects的Marker值设置为 \x0a
@@ -1688,7 +1614,6 @@ class TestBucketOpts(TestBucketBase):
         keys = self.get_keys(response)
         self.eq(keys, keys_in)
 
-    @pytest.mark.sio
     def test_bucket_list_v2_start_after_unreadable(self, s3cfg_global_unique):
         """
         测试-验证list-objects-v2的Marker值设置为 \x0a
@@ -1703,7 +1628,6 @@ class TestBucketOpts(TestBucketBase):
         keys = self.get_keys(response)
         self.eq(keys, keys_in)
 
-    @pytest.mark.sio
     def test_bucket_list_marker_not_in_list(self, s3cfg_global_unique):
         """
         测试-验证list-objects的Marker值设置为b开头的不在对象列表中的一个值，
@@ -1718,7 +1642,6 @@ class TestBucketOpts(TestBucketBase):
         keys = self.get_keys(response)
         self.eq(keys, ['foo', 'quxx'])
 
-    @pytest.mark.sio
     def test_bucket_list_v2_start_after_not_in_list(self, s3cfg_global_unique):
         """
         测试-验证list-objects-v2的StartAfter值设置为b开头的不在对象列表中的一个值，
@@ -1733,7 +1656,6 @@ class TestBucketOpts(TestBucketBase):
         keys = self.get_keys(response)
         self.eq(keys, ['foo', 'quxx'])
 
-    @pytest.mark.sio
     def test_bucket_list_marker_after_list(self, s3cfg_global_unique):
         """
         测试-验证list-objects的Marker值设置为zzz且不在对象列表中，
@@ -1749,7 +1671,6 @@ class TestBucketOpts(TestBucketBase):
         self.eq(response['IsTruncated'], False)
         self.eq(keys, [])
 
-    @pytest.mark.sio
     def test_bucket_list_v2_start_after_after_list(self, s3cfg_global_unique):
         """
         测试-验证list-objects-v2的StartAfter值设置为zzz且不在对象列表中，
@@ -1765,7 +1686,6 @@ class TestBucketOpts(TestBucketBase):
         self.eq(response['IsTruncated'], False)
         self.eq(keys, [])
 
-    @pytest.mark.sio
     def test_bucket_list_objects_anonymous_fail(self, s3cfg_global_unique):
         """
         测试-验证未认证用户进行list-objects操作，
@@ -1780,7 +1700,6 @@ class TestBucketOpts(TestBucketBase):
         self.eq(status, 403)
         self.eq(error_code, 'AccessDenied')
 
-    @pytest.mark.sio
     def test_bucket_list_v2_objects_anonymous_fail(self, s3cfg_global_unique):
         """
         测试-验证未认证用户进行list-objects-v2操作，
@@ -1795,7 +1714,6 @@ class TestBucketOpts(TestBucketBase):
         self.eq(status, 403)
         self.eq(error_code, 'AccessDenied')
 
-    @pytest.mark.sio
     def test_bucket_not_exist(self, s3cfg_global_unique):
         """
         测试-验证对不存在的Bucket进行list-objects操作，
@@ -1809,7 +1727,6 @@ class TestBucketOpts(TestBucketBase):
         self.eq(status, 404)
         self.eq(error_code, 'NoSuchBucket')
 
-    @pytest.mark.sio
     def test_bucket_v2_not_exist(self, s3cfg_global_unique):
         """
         测试-验证对不存在的Bucket进行list-objects操作，
@@ -1823,7 +1740,6 @@ class TestBucketOpts(TestBucketBase):
         self.eq(status, 404)
         self.eq(error_code, 'NoSuchBucket')
 
-    @pytest.mark.sio
     def test_bucket_delete_not_exist(self, s3cfg_global_unique):
         """
         测试-验证对不存在的Bucket进行delete-bucket操作，
@@ -1837,7 +1753,6 @@ class TestBucketOpts(TestBucketBase):
         self.eq(status, 404)
         self.eq(error_code, 'NoSuchBucket')
 
-    @pytest.mark.sio
     def test_bucket_delete_nonempty(self, s3cfg_global_unique):
         """
         测试-验证非空的Bucket进行delete-bucket操作，
@@ -1853,7 +1768,6 @@ class TestBucketOpts(TestBucketBase):
         self.eq(status, 409)
         self.eq(error_code, 'BucketNotEmpty')
 
-    @pytest.mark.sio
     def test_bucket_create_delete(self, s3cfg_global_unique):
         """
         测试-验证不存在的Bucket进行delete-bucket操作，
@@ -1868,7 +1782,6 @@ class TestBucketOpts(TestBucketBase):
         self.eq(status, 404)
         self.eq(error_code, 'NoSuchBucket')
 
-    @pytest.mark.sio
     def test_bucket_head(self, s3cfg_global_unique):
         """
         测试-验证对存在的bucket进行head-bucket操作
@@ -1879,7 +1792,6 @@ class TestBucketOpts(TestBucketBase):
         response = client.head_bucket(Bucket=bucket_name)
         self.eq(response['ResponseMetadata']['HTTPStatusCode'], 200)
 
-    @pytest.mark.sio
     def test_bucket_head_not_exist(self, s3cfg_global_unique):
         """
         测试-验证对不存在的bucket进行head-bucket操作，
@@ -1894,7 +1806,6 @@ class TestBucketOpts(TestBucketBase):
         # n.b., RGW does not send a response document for this operation,
         # which seems consistent with https://docs.aws.amazon.com/AmazonS3/latest/API/API_HeadBucket.html
 
-    @pytest.mark.sio
     def test_bucket_head_extended(self, s3cfg_global_unique):
         """
         测试-验证head-bucket的响应中headers是否正确
@@ -1912,7 +1823,6 @@ class TestBucketOpts(TestBucketBase):
         self.eq(int(response['ResponseMetadata']['HTTPHeaders']['x-rgw-object-count']), 3)
         self.eq(int(response['ResponseMetadata']['HTTPHeaders']['x-rgw-bytes-used']), 9)
 
-    @pytest.mark.sio
     def test_bucket_create_exists(self, s3cfg_global_unique):
         """
         测试-验证重复创建同一个存储桶，验证是否报错；
@@ -1931,7 +1841,6 @@ class TestBucketOpts(TestBucketBase):
             self.eq(status, 409)
             self.eq(error_code, 'BucketAlreadyOwnedByYou')
 
-    @pytest.mark.sio
     def test_bucket_get_location(self, s3cfg_global_unique):
         """
         测试-验证创建存储桶并获取LocationConstraint,
@@ -1957,7 +1866,6 @@ class TestBucketOpts(TestBucketBase):
             location_constraint = None
         self.eq(response['LocationConstraint'], location_constraint)
 
-    @pytest.mark.sio
     def test_bucket_create_exists_non_owner(self, s3cfg_global_unique):
         """
         测试-验证不同用户创建相同存储桶，
@@ -1976,7 +1884,8 @@ class TestBucketOpts(TestBucketBase):
         self.eq(status, 409)
         self.eq(error_code, 'BucketAlreadyExists')
 
-    @pytest.mark.sio_maybe
+    @pytest.mark.fails_on_sio
+    @pytest.mark.xfail(reason="需要判断是否支持此功能", run=True, strict=True)
     def test_logging_toggle(self, s3cfg_global_unique):
         """
         (operation='set/enable/disable logging target')
@@ -2001,7 +1910,6 @@ class TestBucketOpts(TestBucketBase):
         client.put_bucket_logging(Bucket=bucket_name, BucketLoggingStatus=status)
         # NOTE: this does not actually test whether or not logging works
 
-    @pytest.mark.sio
     def test_buckets_create_then_list(self, s3cfg_global_unique):
         """
         测试-验证创建存储桶后列举
@@ -2024,7 +1932,6 @@ class TestBucketOpts(TestBucketBase):
                 raise RuntimeError(
                     "S3 implementation's GET on Service did not return bucket we created: %r", name)
 
-    @pytest.mark.sio
     def test_buckets_list_ctime(self, s3cfg_global_unique):
         """
         测试-验证新建并列出存储桶的响应中，每个桶都含有CreationDate
@@ -2043,7 +1950,6 @@ class TestBucketOpts(TestBucketBase):
                 ctime = bucket['CreationDate']
                 assert before <= ctime
 
-    @pytest.mark.sio
     def test_list_buckets_anonymous(self, s3cfg_global_unique):
         """
         测试-验证使用匿名用户进行list-buckets操作，获取到的桶数量为0
@@ -2057,7 +1963,6 @@ class TestBucketOpts(TestBucketBase):
         response = unauthenticated_client.list_buckets()
         self.eq(len(response['Buckets']), 0)
 
-    @pytest.mark.sio
     def test_list_buckets_invalid_auth(self, s3cfg_global_unique):
         """
         测试-验证使用无效的认证进行列桶操作，
@@ -2069,7 +1974,6 @@ class TestBucketOpts(TestBucketBase):
         self.eq(status, 403)
         self.eq(error_code, 'InvalidAccessKeyId')
 
-    @pytest.mark.sio
     def test_list_buckets_bad_auth(self, s3cfg_global_unique):
         """
         测试-使用错误的sk进行认证，然后进行列桶操作，
@@ -2083,7 +1987,6 @@ class TestBucketOpts(TestBucketBase):
         self.eq(status, 403)
         self.eq(error_code, 'SignatureDoesNotMatch')
 
-    @pytest.mark.sio
     def test_bucket_recreate_not_overriding(self, s3cfg_global_unique):
         """
         测试-验证create bucket with objects and recreate it，
@@ -2101,7 +2004,6 @@ class TestBucketOpts(TestBucketBase):
         objs_list = self.get_objects_list(client=client, bucket=bucket_name)
         self.eq(key_names, objs_list)
 
-    @pytest.mark.sio
     def test_bucket_list_special_prefix(self, s3cfg_global_unique):
         """
         测试-验证create and list objects with underscore as prefix, list using prefix
@@ -2118,6 +2020,7 @@ class TestBucketOpts(TestBucketBase):
         self.eq(len(objs_list), 4)
 
 
+@pytest.mark.sio
 class TestBucketNameRules(TestBucketBase):
     """
     https://docs.aws.amazon.com/zh_cn/zh_cn/AmazonS3/latest/userguide/bucketnamingrules.html
@@ -2158,7 +2061,6 @@ class TestBucketNameRules(TestBucketBase):
         doc-example-bucket-（以连字符结尾）
     """
 
-    @pytest.mark.sio
     def test_bucket_create_naming_bad_starts_non_alpha(self, s3cfg_global_unique):
         """
         测试-验证 bucket name begins with underscore;
@@ -2167,7 +2069,6 @@ class TestBucketNameRules(TestBucketBase):
         bucket_name = self.get_new_bucket_name(s3cfg_global_unique)
         self.check_bad_bucket_name(s3cfg_global_unique, '_' + bucket_name)
 
-    @pytest.mark.sio
     def test_bucket_create_naming_bad_short_one(self, s3cfg_global_unique):
         """
         测试-验证bucket name: short (one character) name;
@@ -2175,7 +2076,6 @@ class TestBucketNameRules(TestBucketBase):
         """
         self.check_bad_bucket_name(s3cfg_global_unique, 'a')
 
-    @pytest.mark.sio
     def test_bucket_create_naming_bad_short_two(self, s3cfg_global_unique):
         """
         测试-验证bucket name: short (two character) name;
@@ -2183,7 +2083,6 @@ class TestBucketNameRules(TestBucketBase):
         """
         self.check_bad_bucket_name(s3cfg_global_unique, 'aa')
 
-    @pytest.mark.sio
     def test_bucket_create_naming_bad_ip(self, s3cfg_global_unique):
         """
         测试-验证bucket name: create ip address for name;
@@ -2191,23 +2090,8 @@ class TestBucketNameRules(TestBucketBase):
         """
         self.check_bad_bucket_name(s3cfg_global_unique, '192.168.5.123')
 
-    @pytest.mark.sio_maybe
     @pytest.mark.fails_on_sio
-    @pytest.mark.xfail(reason="空字符串怎么传参，需要试一下", run=True, strict=True)
-    def test_bucket_create_naming_bad_short_empty(self, s3cfg_global_unique):
-        """
-        测试-验证设置存储桶名为空字符串，
-        405，MethodNotAllowed
-        """
-        invalid_bucket_name = ''
-        self.check_bad_bucket_name(s3cfg_global_unique, invalid_bucket_name)
-        # status, error_code = self.check_invalid_bucket_name(s3cfg_global_unique, invalid_bucket_name)
-        # self.eq(status, 405)
-        # self.eq(error_code, 'MethodNotAllowed')
-
-    @pytest.mark.sio_maybe
-    @pytest.mark.fails_on_sio
-    @pytest.mark.xfail(reason="新规则变更为3~63，不是255", run=True, strict=True)
+    @pytest.mark.xfail(reason="新规则变更为3~63，不是255，Ceph未添加此规则", run=True, strict=True)
     def test_bucket_create_naming_bad_long(self, s3cfg_global_unique):
         """
         测试-验证存储桶名字长度限制，
@@ -2225,7 +2109,6 @@ class TestBucketNameRules(TestBucketBase):
         status, error_code = self.check_invalid_bucket_name(s3cfg_global_unique, invalid_bucket_name)
         self.eq(status, 400)
 
-    @pytest.mark.sio_maybe
     @pytest.mark.fails_on_sio
     @pytest.mark.xfail(reason="预期：[a-zA-Z0-9._-]，Ceph未添加此规则", run=True, strict=True)
     def test_bucket_create_naming_bad_punctuation(self, s3cfg_global_unique):
@@ -2244,7 +2127,6 @@ class TestBucketNameRules(TestBucketBase):
         self.eq(status, 400)
         self.eq(error_code, 'InvalidBucketName')
 
-    @pytest.mark.sio_maybe
     @pytest.mark.fails_on_sio
     @pytest.mark.xfail(reason="预期：下划线限制规则，Ceph未添加", run=True, strict=True)
     def test_bucket_create_naming_dns_underscore(self, s3cfg_global_unique):
@@ -2257,7 +2139,6 @@ class TestBucketNameRules(TestBucketBase):
         self.eq(status, 400)
         self.eq(error_code, 'InvalidBucketName')
 
-    @pytest.mark.sio_maybe
     @pytest.mark.fails_on_sio
     @pytest.mark.xfail(reason="预期：英文短横线限制规则，Ceph未添加", run=True, strict=True)
     def test_bucket_create_naming_dns_dash_at_end(self, s3cfg_global_unique):
@@ -2270,7 +2151,6 @@ class TestBucketNameRules(TestBucketBase):
         self.eq(status, 400)
         self.eq(error_code, 'InvalidBucketName')
 
-    @pytest.mark.sio_maybe
     @pytest.mark.fails_on_sio
     @pytest.mark.xfail(reason="预期：英文连续点的限制规则，Ceph未添加", run=True, strict=True)
     def test_bucket_create_naming_dns_dot_dot(self, s3cfg_global_unique):
@@ -2283,7 +2163,6 @@ class TestBucketNameRules(TestBucketBase):
         self.eq(status, 400)
         self.eq(error_code, 'InvalidBucketName')
 
-    @pytest.mark.sio_maybe
     @pytest.mark.fails_on_sio
     @pytest.mark.xfail(reason="预期：短横线后面添加英文点的限制规则，Ceph未添加", run=True, strict=True)
     def test_bucket_create_naming_dns_dash_dot(self, s3cfg_global_unique):
@@ -2296,7 +2175,6 @@ class TestBucketNameRules(TestBucketBase):
         self.eq(status, 400)
         self.eq(error_code, 'InvalidBucketName')
 
-    @pytest.mark.sio
     def test_bucket_create_naming_dns_dot_dash(self, s3cfg_global_unique):
         """
         测试-验证存储桶名中英文点号后面添加英文短横线，(ceph未添加此限制)
@@ -2310,7 +2188,6 @@ class TestBucketNameRules(TestBucketBase):
         # self.eq(status, 400)
         # self.eq(error_code, 'InvalidBucketName')
 
-    @pytest.mark.sio
     def test_bucket_create_naming_dns_long(self, s3cfg_global_unique):
         """
         测试-验证存储桶名长度为63个字符(ceph未添加3~63个字符的限制)，
@@ -2320,7 +2197,6 @@ class TestBucketNameRules(TestBucketBase):
         num = 63 - len(prefix)
         self.check_good_bucket_name(s3cfg_global_unique, num * 'a')
 
-    @pytest.mark.sio
     def test_bucket_create_naming_good_starts_alpha(self, s3cfg_global_unique):
         """
         测试-验证存储桶名以字母开头(ceph未添加此限制)，
@@ -2333,7 +2209,6 @@ class TestBucketNameRules(TestBucketBase):
         self.check_good_bucket_name(config=s3cfg_global_unique, name='foo', prefix=prefix)
         nuke_prefixed_buckets(client, prefix)
 
-    @pytest.mark.sio
     def test_bucket_create_naming_good_starts_digit(self, s3cfg_global_unique):
         """
         测试-验证存储桶名以数字开头(ceph未添加此限制)
@@ -2346,49 +2221,42 @@ class TestBucketNameRules(TestBucketBase):
         self.check_good_bucket_name(config=s3cfg_global_unique, name='foo', prefix=prefix)
         nuke_prefixed_buckets(client, prefix)
 
-    @pytest.mark.sio
     def test_bucket_create_naming_good_contains_period(self, s3cfg_global_unique):
         """
         测试-验证存储桶名中含有英文句点(ceph未添加此限制)
         """
         self.check_good_bucket_name(s3cfg_global_unique, 'aaa.111')
 
-    @pytest.mark.sio
     def test_bucket_create_naming_good_contains_hyphen(self, s3cfg_global_unique):
         """
         测试-验证存储桶名中含有英文中划线(ceph未添加此限制)
         """
         self.check_good_bucket_name(s3cfg_global_unique, 'aaa-111')
 
-    @pytest.mark.sio
     def test_bucket_create_naming_good_long_60(self, s3cfg_global_unique):
         """
         测试-验证存储桶名长度为60个字符(ceph限制的是255)
         """
         self.bucket_create_naming_good_long(s3cfg_global_unique, 60)
 
-    @pytest.mark.sio
     def test_bucket_create_naming_good_long_61(self, s3cfg_global_unique):
         """
         测试-验证存储桶名长度为61个字符(ceph限制的是255)
         """
         self.bucket_create_naming_good_long(s3cfg_global_unique, 61)
 
-    @pytest.mark.sio
     def test_bucket_create_naming_good_long_62(self, s3cfg_global_unique):
         """
         测试-验证存储桶名长度为62个字符(ceph限制的是255)
         """
         self.bucket_create_naming_good_long(s3cfg_global_unique, 62)
 
-    @pytest.mark.sio
     def test_bucket_create_naming_good_long_63(self, s3cfg_global_unique):
         """
         测试-验证存储桶名长度为63个字符(ceph限制的是255)
         """
         self.bucket_create_naming_good_long(s3cfg_global_unique, 63)
 
-    @pytest.mark.sio
     def test_bucket_list_long_name(self, s3cfg_global_unique):
         """
         测试-验证存储桶名长度为61个字符(ceph限制的是255)，并验证是空桶。

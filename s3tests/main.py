@@ -8,4 +8,4 @@ BASE_PATH = Path(os.path.abspath(__file__)).parent
 CASE_PATH = Path(BASE_PATH, "tests/*")
 
 if __name__ == '__main__':
-    pytest.main(['-m ', 'sio and not lifecycle_need_speedup', '-n 10', '--reruns 3', CASE_PATH])
+    pytest.main(['-m ', 'sio and not need_speedup', '-n 10', '--reruns 3', CASE_PATH])

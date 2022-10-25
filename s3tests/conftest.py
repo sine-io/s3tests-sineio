@@ -94,6 +94,7 @@ def _add_s3main_section(cfg: RawConfigParser) -> None:
     S3CFG.main_user_id = cfg.get('s3 main', "user_id")
     S3CFG.main_email = cfg.get('s3 main', "email")
     S3CFG.storage_classes = cfg.get('s3 main', "storage_classes")
+    S3CFG.glacier_bucket = cfg.get("s3 main", "glacier_bucket")  # add glacier bucket, the bucket won't be deleted.
     S3CFG.lc_debug_interval = int(cfg.get('s3 main', "lc_debug_interval"))
 
     S3CFG.main_api_name = cfg.get('s3 main', "api_name") if cfg.has_option('s3 main', "api_name") else None

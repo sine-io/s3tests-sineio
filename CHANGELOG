@@ -1,6 +1,12 @@
 
  S3TESTS-SINEIO 0.0.0.3(sine 2022.10.21)
 ------------------------------------
+- 11: change lifecycle_need_speedup(the pytest mark) to need_speedup
+- 10: add suitable cases.
+
+
+ S3TESTS-SINEIO 0.0.0.3(sine 2022.10.21)
+------------------------------------
 - 9: modify run.sh and run_without_rp.sh, change data cmd to date +"%Y-%m-%d-%T"
 - 8: Bugs fixed in the storage on version: v2.4.0.0, so removed the xfail mark of those cases as below:
       a. tests/test_s3_bucket_v.py::TestBucketOpts::test_bucket_list_v2_delimiter_basic

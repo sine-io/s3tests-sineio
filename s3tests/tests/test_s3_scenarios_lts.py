@@ -1,7 +1,49 @@
 
+import uuid
+
 import pytest
 
-from s3tests.tests import TestBaseClass
+from s3tests.tests import TestBaseClass, get_client, assert_raises, ClientError
+
+
+@pytest.mark.sio
+class TestGlacierObjsOps(TestBaseClass):
+
+    def test_glacier_objs_can_uploaded(self, s3cfg_global_unique):
+        """
+        测试-验证GLACIER类型的对象可以成功上传
+        """
+
+        client = get_client(s3cfg_global_unique)
+
+        res = client.put_object(
+            Bucket=s3cfg_global_unique.glacier_bucket, Key=str(uuid.uuid4()), Body='foo', StorageClass="GLACIER")
+
+        self.eq(self.get_status(res), 200)
+
+    def test_glacier_objs_can_not_rewrite_or_deleted(self, s3cfg_global_unique):
+        """
+        测试-验证GLACIER类型的对象不允许删除和覆盖写
+        """
+
+        client = get_client(s3cfg_global_unique)
+        bucket = s3cfg_global_unique.glacier_bucket
+        key = str(uuid.uuid4())
+
+        client.put_object(Bucket=s3cfg_global_unique.glacier_bucket, Key=key, Body='foo', StorageClass="GLACIER")
+
+        e = assert_raises(ClientError, client.put_object, Bucket=bucket, Key=key, Body='foo1')
+
+        status, error_code = self.get_status_and_error_code(e.response)
+
+        self.eq(status, 403)
+        self.eq(error_code, "InvalidObjectStateGlaciered")
+
+        e = assert_raises(ClientError, client.delete_object, Bucket=bucket, Key=key)
+
+        status, error_code = self.get_status_and_error_code(e.response)
+        self.eq(status, 403)
+        self.eq(error_code, "InvalidObjectStateGlaciered")
 
 
 class TestAnotherScenarios(TestBaseClass):

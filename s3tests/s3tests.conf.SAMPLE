@@ -41,6 +41,9 @@ kms_keyid = 01234567-89ab-cdef-0123-456789abcdef
 ## Storage classes
 storage_classes = "ARCHIVE, GLACIER"
 
+## GLACIER bucket, the bucket won't be nuked.
+glacier_bucket = sio-glacier-test-bucket
+
 ## Lifecycle debug interval (default: 10)
 lc_debug_interval = 20
 

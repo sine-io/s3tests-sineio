@@ -127,6 +127,7 @@ class TestSamples(TestBaseClass):
         self.eq(res.status_code, 200)
         print(res.text)
 
+    @pytest.mark.skip(reason="not done.")
     def test_complete_multipart_upload_entity_too_small(self, s3cfg_global_unique):
         """
         测试-验证complete multipart upload, entity too small.

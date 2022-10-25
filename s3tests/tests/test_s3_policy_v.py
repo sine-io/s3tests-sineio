@@ -478,7 +478,7 @@ class TestBucketPolicy(TestBaseClass):
         self.check_access_denied(alt_client.list_objects, Bucket=bucket_name)
         self.check_access_denied(alt_client.get_object, Bucket=bucket_name, Key='key1')
 
-    @pytest.mark.sio_maybe
+    # @pytest.mark.sio_maybe
     @pytest.mark.fails_on_sio  # TODO: remove this 'fails_on_rgw' once I get the test passing
     @pytest.mark.xfail(reason="加密传输，现阶段不严重，而且用例也不完善", run=True, strict=True)
     def test_bucket_policy_put_obj_enc(self, s3cfg_global_unique):

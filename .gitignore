@@ -16,3 +16,4 @@
 s3tests/s3tests.conf
 s3tests/report/*
 s3tests/pytest.ini
+

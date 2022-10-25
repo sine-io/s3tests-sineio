@@ -18,8 +18,13 @@ def setup_and_teardown_package_level(s3cfg_global_unique: Munch) -> None:
     alt_client = get_alt_client(s3cfg_global_unique)
 
     prefix = s3cfg_global_unique.bucket_prefix
-    nuke_prefixed_buckets(client=client, prefix=prefix, msg="main client")
-    nuke_prefixed_buckets(client=alt_client, prefix=prefix, msg="alt client")
+    nuke_prefixed_buckets(client=client, prefix=prefix, msg="main client")  # perhaps no need.
+    nuke_prefixed_buckets(client=alt_client, prefix=prefix, msg="alt client")  # perhaps no need.
+
+    try:
+        client.create_bucket(Bucket=s3cfg_global_unique.glacier_bucket)  # create it first.
+    except Exception as e:
+        logger.info("Create glacier bucket failed, msg: ", e)
 
     logger.info(" Setup package --- ended ")
 

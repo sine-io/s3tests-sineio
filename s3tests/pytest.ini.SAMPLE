@@ -13,7 +13,7 @@ markers =
     sio_smoke: marks SIO S3's smoke tests (deselect with '-m "not sio_smoke"')
     sio_maybe: maybe suitable.
 
-    lifecycle_need_speedup: lifecycle need speedup(10s as one day.)
+    need_speedup: lifecycle or transition ops need speedup(e.g.: 10s as one day.)
 
     pass_on_sio: pass_on_sio
     fails_on_sio: fails_on_sio

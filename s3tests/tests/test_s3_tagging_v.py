@@ -316,9 +316,9 @@ class TestObjectTagging(TestTaggingBase):
         self.eq(response_tag_set, tag_set)
 
 
+@pytest.mark.sio
 class TestBucketTagging(TestTaggingBase):
 
-    @pytest.mark.sio
     @pytest.mark.fails_on_sio
     @pytest.mark.xfail(reason="预期：当没设置桶标签的时候，获取标签返回NoSuchTagSetError", run=True, strict=True)
     def test_set_bucket_tagging(self, s3cfg_global_unique):

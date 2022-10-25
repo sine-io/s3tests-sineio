@@ -1,4 +1,3 @@
-
 import threading
 
 import pytest
@@ -313,9 +312,9 @@ class TestAclBase(TestBaseClass):
             self.eq(g, {'Grantee': {}})
 
 
+@pytest.mark.sio
 class TestBucketAcl(TestAclBase):
 
-    @pytest.mark.sio
     def test_bucket_list_objects_anonymous(self, s3cfg_global_unique):
         """
         测试-验证ACL public-read规则生效
@@ -328,7 +327,6 @@ class TestBucketAcl(TestAclBase):
         unauthenticated_client = get_unauthenticated_client(s3cfg_global_unique)
         unauthenticated_client.list_objects(Bucket=bucket_name)
 
-    @pytest.mark.sio
     def test_bucket_list_v2_objects_anonymous(self, s3cfg_global_unique):
         """
         测试-验证ACL public-read规则生效，使用list-objects-v2方法
@@ -340,7 +338,6 @@ class TestBucketAcl(TestAclBase):
         unauthenticated_client = get_unauthenticated_client(s3cfg_global_unique)
         unauthenticated_client.list_objects_v2(Bucket=bucket_name)
 
-    @pytest.mark.sio
     def test_bucket_concurrent_set_canned_acl(self, s3cfg_global_unique):
         """
         测试-验证对同一个桶并发设置ACL
@@ -359,7 +356,6 @@ class TestBucketAcl(TestAclBase):
         for r in results:
             self.eq(r, True)
 
-    @pytest.mark.sio
     def test_bucket_recreate_overwrite_acl(self, s3cfg_global_unique):
         """
         测试-验证多次创建同一个存储桶的表现（不同用户：409错误码，BucketAlreadyExists）；
@@ -386,7 +382,6 @@ class TestBucketAcl(TestAclBase):
         self.eq(status, 409)
         self.eq(error_code, 'BucketAlreadyExists')
 
-    @pytest.mark.sio
     def test_bucket_recreate_new_acl(self, s3cfg_global_unique):
         """
         测试-验证多次创建同一个存储桶的表现（不同用户：409错误码，BucketAlreadyExists）；
@@ -413,7 +408,6 @@ class TestBucketAcl(TestAclBase):
         self.eq(status, 409)
         self.eq(error_code, 'BucketAlreadyExists')
 
-    @pytest.mark.sio
     def test_bucket_acl_no_grants(self, s3cfg_global_unique):
         """
         测试-验证owner with no grants；
@@ -453,7 +447,6 @@ class TestBucketAcl(TestAclBase):
         policy['Grants'] = old_grants
         client2.put_bucket_acl(Bucket=bucket_name, AccessControlPolicy=policy)
 
-    @pytest.mark.sio
     def test_bucket_acl_canned_public_read_write(self, s3cfg_global_unique):
         """
         测试-验证ACL public-read-write设置成功后，获取的ACL是否正确；
@@ -512,7 +505,6 @@ class TestBucketAcl(TestAclBase):
             ],
         )
 
-    @pytest.mark.sio
     def test_bucket_acl_default(self, s3cfg_global_unique):
         """
         测试-验证存储桶默认的ACL响应体
@@ -552,7 +544,6 @@ class TestBucketAcl(TestAclBase):
             ],
         )
 
-    @pytest.mark.sio
     def test_bucket_acl_canned_during_create(self, s3cfg_global_unique):
         """
         测试-验证ACL public-read的响应是否正确
@@ -600,7 +591,6 @@ class TestBucketAcl(TestAclBase):
             ],
         )
 
-    @pytest.mark.sio
     def test_bucket_acl_canned(self, s3cfg_global_unique):
         """
         测试-验证ACL public-read， private的响应是否正确
@@ -654,7 +644,6 @@ class TestBucketAcl(TestAclBase):
             ],
         )
 
-    @pytest.mark.sio
     def test_bucket_acl_canned_authenticated_read(self, s3cfg_global_unique):
         """
         测试-验证ACL authenticated-read的响应是否正确
@@ -699,7 +688,6 @@ class TestBucketAcl(TestAclBase):
             ],
         )
 
-    @pytest.mark.sio
     def test_bucket_acl_canned_private_to_private(self, s3cfg_global_unique):
         """
         测试-验证设置private的ACL是否成功；
@@ -711,7 +699,6 @@ class TestBucketAcl(TestAclBase):
         response = client.put_bucket_acl(Bucket=bucket_name, ACL='private')
         self.eq(response['ResponseMetadata']['HTTPStatusCode'], 200)
 
-    @pytest.mark.sio
     def test_bucket_acl_grant_userid_full_control(self, s3cfg_global_unique):
         """
         测试-验证ACL赋予其他对象用户FULL_CONTROL权限；
@@ -739,7 +726,6 @@ class TestBucketAcl(TestAclBase):
         self.eq(owner_id, main_user_id)
         self.eq(owner_display_name, main_display_name)
 
-    @pytest.mark.sio
     def test_bucket_acl_grant_userid_read(self, s3cfg_global_unique):
         """
         测试-验证ACL赋予其他对象用户READ权限；
@@ -756,7 +742,6 @@ class TestBucketAcl(TestAclBase):
         # can't write acl
         self.check_bucket_acl_grant_cant_write_acp(s3cfg_global_unique, bucket_name)
 
-    @pytest.mark.sio
     def test_bucket_acl_grant_userid_read_acp(self, s3cfg_global_unique):
         """
         测试-验证ACL赋予其他对象用户READ_ACP权限；
@@ -773,7 +758,6 @@ class TestBucketAcl(TestAclBase):
         # can't write acp
         self.check_bucket_acl_grant_cant_write_acp(s3cfg_global_unique, bucket_name)
 
-    @pytest.mark.sio
     def test_bucket_acl_grant_userid_write(self, s3cfg_global_unique):
         """
         测试-验证ACL赋予其他对象用户WRITE权限；
@@ -790,7 +774,6 @@ class TestBucketAcl(TestAclBase):
         # can't write acl
         self.check_bucket_acl_grant_cant_write_acp(s3cfg_global_unique, bucket_name)
 
-    @pytest.mark.sio
     def test_bucket_acl_grant_userid_write_acp(self, s3cfg_global_unique):
         """
         测试-验证ACL赋予其他对象用户WRITE_ACP权限；
@@ -807,7 +790,6 @@ class TestBucketAcl(TestAclBase):
         # can write acl
         self.check_bucket_acl_grant_can_write_acp(s3cfg_global_unique, bucket_name)
 
-    @pytest.mark.sio
     def test_bucket_acl_grant_non_exist_user(self, s3cfg_global_unique):
         """
         测试-验证为不存在的user设置ACL；
@@ -825,7 +807,6 @@ class TestBucketAcl(TestAclBase):
         self.eq(status, 400)
         self.eq(error_code, 'InvalidArgument')
 
-    @pytest.mark.sio
     def test_bucket_header_acl_grants(self, s3cfg_global_unique):
         """
         测试-通过headers给alt user设置全部权限("read", "write", "read-acp", "write-acp", "full-control")
@@ -899,7 +880,6 @@ class TestBucketAcl(TestAclBase):
         # set bucket acl to public-read-write so that teardown can work
         alt_client.put_bucket_acl(Bucket=bucket_name, ACL='public-read-write')
 
-    @pytest.mark.sio
     def test_bucket_acl_grant_email(self, s3cfg_global_unique):
         """
         测试-通过设置alt user的email，赋予FULL_CONTROL权限，并验证响应正确
@@ -946,7 +926,6 @@ class TestBucketAcl(TestAclBase):
             ]
         )
 
-    @pytest.mark.sio
     def test_bucket_acl_grant_email_not_exist(self, s3cfg_global_unique):
         """
         测试-验证给不存在的email添加ACL；
@@ -967,7 +946,6 @@ class TestBucketAcl(TestAclBase):
         self.eq(status, 400)
         self.eq(error_code, 'UnresolvableGrantByEmailAddress')
 
-    @pytest.mark.sio
     def test_bucket_acl_revoke_all(self, s3cfg_global_unique):
         """
         测试-验证去掉所有ACLs，获取ACL的响应中grants为空
@@ -991,7 +969,6 @@ class TestBucketAcl(TestAclBase):
         policy['Grants'] = old_grants
         client.put_bucket_acl(Bucket=bucket_name, AccessControlPolicy=policy)
 
-    @pytest.mark.sio
     def test_object_anon_put_write_access(self, s3cfg_global_unique):
         """
         测试-验证未认证用户对已存在的对象进行覆盖写（桶ACL：public-read-write）
@@ -1006,9 +983,9 @@ class TestBucketAcl(TestAclBase):
         self.eq(response['ResponseMetadata']['HTTPStatusCode'], 200)
 
 
+@pytest.mark.sio
 class TestObjectAcl(TestAclBase):
 
-    @pytest.mark.sio
     def test_object_acl_default(self, s3cfg_global_unique):
         """
         测试-验证新上传的object的默认ACL，响应符合预期
@@ -1037,7 +1014,6 @@ class TestObjectAcl(TestAclBase):
             ],
         )
 
-    @pytest.mark.sio
     def test_object_acl_canned_during_create(self, s3cfg_global_unique):
         """
         测试-验证上传对象时设置public-read ACL，并验证响应符合预期
@@ -1074,7 +1050,6 @@ class TestObjectAcl(TestAclBase):
             ],
         )
 
-    @pytest.mark.sio
     def test_object_acl_canned(self, s3cfg_global_unique):
         """
         测试-验证上传对象时分别设置public-read和private ACL，并验证ACL获取后符合预期
@@ -1131,7 +1106,6 @@ class TestObjectAcl(TestAclBase):
             ],
         )
 
-    @pytest.mark.sio
     def test_object_acl_canned_public_read_write(self, s3cfg_global_unique):
         """
         测试-验证上传对象时设置public-read-write ACL，并验证ACL获取后符合预期
@@ -1176,7 +1150,6 @@ class TestObjectAcl(TestAclBase):
             ],
         )
 
-    @pytest.mark.sio
     def test_object_acl_canned_authenticated_read(self, s3cfg_global_unique):
         """
         测试-验证上传对象时设置authenticated-read ACL，并验证ACL获取后符合预期；
@@ -1214,7 +1187,6 @@ class TestObjectAcl(TestAclBase):
             ],
         )
 
-    @pytest.mark.sio
     def test_object_acl_canned_bucket_owner_read(self, s3cfg_global_unique):
         """
         测试-验证上传对象时设置bucket-owner-read ACL，并验证ACL获取后符合预期；
@@ -1262,7 +1234,6 @@ class TestObjectAcl(TestAclBase):
             ],
         )
 
-    @pytest.mark.sio
     def test_object_acl_canned_bucket_owner_full_control(self, s3cfg_global_unique):
         """
         测试-验证上传对象时设置bucket-owner-full-control ACL，并验证ACL获取后符合预期；
@@ -1311,7 +1282,6 @@ class TestObjectAcl(TestAclBase):
             ],
         )
 
-    @pytest.mark.sio
     def test_object_acl_full_control_verify_owner(self, s3cfg_global_unique):
         """
         测试-通过put_object_acl设置修改Grantee的ID为alt ID、Permission修改为READ_ACP，
@@ -1366,7 +1336,6 @@ class TestObjectAcl(TestAclBase):
         """
         self.eq(response['Owner']['ID'], main_user_id)
 
-    @pytest.mark.sio
     def test_object_acl_full_control_verify_attributes(self, s3cfg_global_unique):
         """
         测试-通过put_object_acl设置修改Grantee的ID为alt ID、Permission修改为FULL_CONTROL，
@@ -1459,42 +1428,36 @@ class TestObjectAcl(TestAclBase):
         self.eq(content_type, response['ContentType'])
         self.eq(etag, response['ETag'])
 
-    @pytest.mark.sio
     def test_object_acl(self, s3cfg_global_unique):
         """
         测试-验证put_object_acl设置FULL_CONTROL权限，并验证ACL符合要求
         """
         self.check_object_acl(s3cfg_global_unique, 'FULL_CONTROL')
 
-    @pytest.mark.sio
     def test_object_acl_write(self, s3cfg_global_unique):
         """
         测试-验证put_object_acl设置WRITE权限，并验证ACL符合要求
         """
         self.check_object_acl(s3cfg_global_unique, 'WRITE')
 
-    @pytest.mark.sio
     def test_object_acl_write_acp(self, s3cfg_global_unique):
         """
         测试-验证put_object_acl设置WRITE_ACP权限，并验证ACL符合要求
         """
         self.check_object_acl(s3cfg_global_unique, 'WRITE_ACP')
 
-    @pytest.mark.sio
     def test_object_acl_read(self, s3cfg_global_unique):
         """
         测试-验证put_object_acl设置READ权限，并验证ACL符合要求
         """
         self.check_object_acl(s3cfg_global_unique, 'READ')
 
-    @pytest.mark.sio
     def test_object_acl_read_acp(self, s3cfg_global_unique):
         """
         测试-验证put_object_acl设置READ_ACP权限，并验证ACL符合要求
         """
         self.check_object_acl(s3cfg_global_unique, 'READ_ACP')
 
-    @pytest.mark.sio
     def test_object_header_acl_grants(self, s3cfg_global_unique):
         """
         测试-验证通过headers赋予alt用户所有权限
@@ -1563,7 +1526,6 @@ class TestObjectAcl(TestAclBase):
             ],
         )
 
-    @pytest.mark.sio
     def test_versioned_object_acl(self, s3cfg_global_unique):
         """
         测试-验证多版本对象和ACL是否正确
@@ -1634,7 +1596,6 @@ class TestObjectAcl(TestAclBase):
         grants = response['Grants']
         self.check_grants(grants, default_policy)
 
-    @pytest.mark.sio
     def test_versioned_object_acl_no_version_specified(self, s3cfg_global_unique):
         """
         测试-验证多版本对象和ACL的情况
@@ -1701,9 +1662,9 @@ class TestObjectAcl(TestAclBase):
         )
 
 
+@pytest.mark.sio
 class TestBucketObjectAclMixin(TestAclBase):
 
-    @pytest.mark.sio
     def test_object_raw_get_bucket_acl(self, s3cfg_global_unique):
         """
         测试-验证桶ACL为private，对象ACL为public-read
@@ -1714,7 +1675,6 @@ class TestBucketObjectAclMixin(TestAclBase):
         response = unauthenticated_client.get_object(Bucket=bucket_name, Key='foo')
         self.eq(response['ResponseMetadata']['HTTPStatusCode'], 200)
 
-    @pytest.mark.sio
     def test_object_raw_get_object_acl(self, s3cfg_global_unique):
         """
         测试-验证桶设置为public-read、对象设置private ACL，未认证的情况下返回403，AccessDenied
@@ -1727,7 +1687,6 @@ class TestBucketObjectAclMixin(TestAclBase):
         self.eq(status, 403)
         self.eq(error_code, 'AccessDenied')
 
-    @pytest.mark.sio
     def test_object_raw_get(self, s3cfg_global_unique):
         """
         测试-验证未认证的用户进行get_object操作（Bucket和Object的ACL均为public-read）
@@ -1738,7 +1697,6 @@ class TestBucketObjectAclMixin(TestAclBase):
         response = unauthenticated_client.get_object(Bucket=bucket_name, Key='foo')
         self.eq(response['ResponseMetadata']['HTTPStatusCode'], 200)
 
-    @pytest.mark.sio
     def test_object_raw_get_bucket_gone(self, s3cfg_global_unique):
         """
         测试-验证未认证的用户对已删除的对象和桶进行get_object操作（Bucket和Object的ACL均为public-read）；
@@ -1757,7 +1715,6 @@ class TestBucketObjectAclMixin(TestAclBase):
         self.eq(status, 404)
         self.eq(error_code, 'NoSuchBucket')
 
-    @pytest.mark.sio
     def test_object_delete_key_bucket_gone(self, s3cfg_global_unique):
         """
         测试-验证未认证的用户对已删除的对象和桶进行delete_object操作（Bucket和Object的ACL均为public-read）；
@@ -1776,7 +1733,6 @@ class TestBucketObjectAclMixin(TestAclBase):
         self.eq(status, 404)
         self.eq(error_code, 'NoSuchBucket')
 
-    @pytest.mark.sio
     def test_object_raw_get_object_gone(self, s3cfg_global_unique):
         """
         测试-验证未认证的用户对已删除的对象进行get_object操作（Bucket和Object的ACL均为public-read）；
@@ -1794,7 +1750,6 @@ class TestBucketObjectAclMixin(TestAclBase):
         self.eq(status, 404)
         self.eq(error_code, 'NoSuchKey')
 
-    @pytest.mark.sio
     def test_object_raw_authenticated(self, s3cfg_global_unique):
         """
         测试-验证已认证用户进行get_object操作（Bucket和Object的ACL均为public-read）
@@ -1805,7 +1760,6 @@ class TestBucketObjectAclMixin(TestAclBase):
         response = client.get_object(Bucket=bucket_name, Key='foo')
         self.eq(response['ResponseMetadata']['HTTPStatusCode'], 200)
 
-    @pytest.mark.sio
     def test_object_raw_response_headers(self, s3cfg_global_unique):
         """
         测试-验证已认证用户进行get_object操作（Bucket和Object的ACL均为private）
@@ -1824,7 +1778,6 @@ class TestBucketObjectAclMixin(TestAclBase):
         self.eq(response['ResponseMetadata']['HTTPHeaders']['content-encoding'], 'aaa')
         self.eq(response['ResponseMetadata']['HTTPHeaders']['cache-control'], 'no-cache')
 
-    @pytest.mark.sio
     def test_object_raw_authenticated_bucket_acl(self, s3cfg_global_unique):
         """
         测试-验证已认证用户进行get_object操作（Bucket/Object的ACL分别为private/public-read）
@@ -1835,7 +1788,6 @@ class TestBucketObjectAclMixin(TestAclBase):
         response = client.get_object(Bucket=bucket_name, Key='foo')
         self.eq(response['ResponseMetadata']['HTTPStatusCode'], 200)
 
-    @pytest.mark.sio
     def test_object_raw_authenticated_object_acl(self, s3cfg_global_unique):
         """
         测试-验证已认证用户进行get_object操作（Bucket/Object的ACL分别为public-read/private）
@@ -1846,7 +1798,6 @@ class TestBucketObjectAclMixin(TestAclBase):
         response = client.get_object(Bucket=bucket_name, Key='foo')
         self.eq(response['ResponseMetadata']['HTTPStatusCode'], 200)
 
-    @pytest.mark.sio
     def test_object_raw_authenticated_bucket_gone(self, s3cfg_global_unique):
         """
         测试-验证已认证用户对已删除的桶和对象进行get_object操作（Bucket/Object的ACL均为public-read），
@@ -1863,7 +1814,6 @@ class TestBucketObjectAclMixin(TestAclBase):
         self.eq(status, 404)
         self.eq(error_code, 'NoSuchBucket')
 
-    @pytest.mark.sio
     def test_object_raw_authenticated_object_gone(self, s3cfg_global_unique):
         """
         测试-验证已认证用户对已删除的对象进行get_object操作（Bucket/Object的ACL均为public-read），
@@ -1879,7 +1829,6 @@ class TestBucketObjectAclMixin(TestAclBase):
         self.eq(status, 404)
         self.eq(error_code, 'NoSuchKey')
 
-    @pytest.mark.sio
     def test_object_copy_not_owned_object_bucket(self, s3cfg_global_unique):
         """
         测试-验证不同用户间拷贝对象（non-owned object in a non-owned bucket, 赋予ACL权限：FULL_CONTROL）
@@ -1909,7 +1858,6 @@ class TestBucketObjectAclMixin(TestAclBase):
         body = self.get_body(response)
         self.eq('foo', body)
 
-    @pytest.mark.sio
     def test_access_bucket_private_object_private(self, s3cfg_global_unique):
         """
         测试-验证set bucket/object acls: private/private时，使用list-objects，
@@ -1943,7 +1891,6 @@ class TestBucketObjectAclMixin(TestAclBase):
         alt_client3 = get_alt_client(s3cfg_global_unique)
         self.check_access_denied(alt_client3.put_object, Bucket=bucket_name, Key=new_key, Body='newcontent')
 
-    @pytest.mark.sio
     def test_access_bucket_private_object_v2_private(self, s3cfg_global_unique):
         """
         测试-验证set bucket/object acls: private/private时，使用list-objects-v2，
@@ -1976,7 +1923,6 @@ class TestBucketObjectAclMixin(TestAclBase):
         alt_client3 = get_alt_client(s3cfg_global_unique)
         self.check_access_denied(alt_client3.put_object, Bucket=bucket_name, Key=new_key, Body='newcontent')
 
-    @pytest.mark.sio
     def test_access_bucket_private_object_public_read(self, s3cfg_global_unique):
         """
         测试-验证set bucket/object acls: private/public-read时，使用list-objects，
@@ -2001,7 +1947,6 @@ class TestBucketObjectAclMixin(TestAclBase):
         self.check_access_denied(alt_client3.list_objects, Bucket=bucket_name)
         self.check_access_denied(alt_client3.put_object, Bucket=bucket_name, Key=new_key, Body='newcontent')
 
-    @pytest.mark.sio
     def test_access_bucket_private_object_v2_public_read(self, s3cfg_global_unique):
         """
         测试-验证set bucket/object acls: private/public-read时，使用list-objects-v2，
@@ -2026,7 +1971,6 @@ class TestBucketObjectAclMixin(TestAclBase):
         self.check_access_denied(alt_client3.list_objects_v2, Bucket=bucket_name)
         self.check_access_denied(alt_client3.put_object, Bucket=bucket_name, Key=new_key, Body='newcontent')
 
-    @pytest.mark.sio
     def test_access_bucket_private_object_public_read_write(self, s3cfg_global_unique):
         """
         测试-验证set bucket/object acls: private/public-read/write时，使用list-objects，
@@ -2052,7 +1996,6 @@ class TestBucketObjectAclMixin(TestAclBase):
         self.check_access_denied(alt_client3.list_objects, Bucket=bucket_name)
         self.check_access_denied(alt_client3.put_object, Bucket=bucket_name, Key=new_key, Body='newcontent')
 
-    @pytest.mark.sio
     def test_access_bucket_private_object_v2_public_read_write(self, s3cfg_global_unique):
         """
         测试-验证set bucket/object acls: private/public-read/write时，使用list-objects-v2，
@@ -2077,7 +2020,6 @@ class TestBucketObjectAclMixin(TestAclBase):
         self.check_access_denied(alt_client3.list_objects_v2, Bucket=bucket_name)
         self.check_access_denied(alt_client3.put_object, Bucket=bucket_name, Key=new_key, Body='newcontent')
 
-    @pytest.mark.sio
     def test_access_bucket_public_read_object_private(self, s3cfg_global_unique):
         """
         测试-验证set bucket/object acls: public-read/private时，
@@ -2100,7 +2042,6 @@ class TestBucketObjectAclMixin(TestAclBase):
         self.eq(objs, ['bar', 'foo'])
         self.check_access_denied(alt_client3.put_object, Bucket=bucket_name, Key=new_key, Body='newcontent')
 
-    @pytest.mark.sio
     def test_access_bucket_public_read_object_public_read(self, s3cfg_global_unique):
         """
         测试-验证set bucket/object acls: public-read/public-read时，
@@ -2128,7 +2069,6 @@ class TestBucketObjectAclMixin(TestAclBase):
         self.eq(objs, ['bar', 'foo'])
         self.check_access_denied(alt_client3.put_object, Bucket=bucket_name, Key=new_key, Body='newcontent')
 
-    @pytest.mark.sio
     def test_access_bucket_public_read_object_public_read_write(self, s3cfg_global_unique):
         """
         测试-验证set bucket/object acls: public-read/public-read-write时，
@@ -2154,7 +2094,6 @@ class TestBucketObjectAclMixin(TestAclBase):
         self.eq(objs, ['bar', 'foo'])
         self.check_access_denied(alt_client3.put_object, Bucket=bucket_name, Key=new_key, Body='newcontent')
 
-    @pytest.mark.sio
     def test_access_bucket_public_read_write_object_private(self, s3cfg_global_unique):
         """
         测试-验证set bucket/object acls: public-read-write/private时，
@@ -2175,7 +2114,6 @@ class TestBucketObjectAclMixin(TestAclBase):
         self.eq(objs, ['bar', 'foo'])
         alt_client.put_object(Bucket=bucket_name, Key=new_key, Body='newcontent')
 
-    @pytest.mark.sio
     def test_access_bucket_public_read_write_object_public_read(self, s3cfg_global_unique):
         """
         测试-验证set bucket/object acls: public-read-write/public-read时，
@@ -2217,7 +2155,6 @@ class TestBucketObjectAclMixin(TestAclBase):
         self.eq(objs, ['bar', 'foo'])
         alt_client.put_object(Bucket=bucket_name, Key=new_key, Body='newcontent')
 
-    @pytest.mark.sio
     def test_access_bucket_public_read_write_object_public_read_write(self, s3cfg_global_unique):
         """
         测试-验证set bucket/object acls: public-read-write/public-read-write时，

@@ -663,21 +663,21 @@ class TestObjectOpts(TestObjectBase):
         self.eq(status, 416)
         self.eq(error_code, 'InvalidRange')
 
-    @pytest.mark.sio
-    @pytest.mark.fails_on_sio  # TODO: results in a 404 instead of 400 on the RGW
+    @pytest.mark.fails_on_sio
+    @pytest.mark.xfail(reason="我认为这个case目的没达到，暂时标记 xfail 状态，后续改进", run=True, strict=True)
     def test_object_read_unreadable(self, s3cfg_global_unique):
         """
-        测试-验证下载不存在的对象，
-        404，NoSuchKey
+        测试-验证下载对象时，填写不符合URI规则的key
+        results in a 404/NoSuchKey instead of 400 on the RGW
         """
         client = get_client(s3cfg_global_unique)
         bucket_name = self.get_new_bucket(client, s3cfg_global_unique)
         e = assert_raises(ClientError, client.get_object, Bucket=bucket_name, Key='\xae\x8a-')
         status, error_code = self.get_status_and_error_code(e.response)
-        self.eq(status, 404)
-        self.eq(error_code, 'NoSuchKey')
-        # self.eq(status, 400)
-        # self.eq(e.response['Error']['Message'], 'Couldn\'t parse the specified URI.')
+        # self.eq(status, 404)
+        # self.eq(error_code, 'NoSuchKey')
+        self.eq(status, 400)
+        self.eq(e.response['Error']['Message'], 'Couldn\'t parse the specified URI.')
 
 
 @pytest.mark.sio
@@ -753,7 +753,8 @@ class TestAtomicWriteAndRead(TestObjectBase):
         """
         self.atomic_dual_conditional_write(s3cfg_global_unique, 1024 * 1024)
 
-    @pytest.mark.fails_on_sio  # TODO: test not passing with SSL, fix this
+    @pytest.mark.fails_on_sio
+    @pytest.mark.xfail(reason="test not passing with SSL, fix this", run=True, strict=True)
     def test_atomic_write_bucket_gone(self, s3cfg_global_unique):
         """
         测试-验证往不存在的桶内原子写，
