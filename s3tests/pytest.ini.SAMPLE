@@ -23,6 +23,8 @@ markers =
 
     gdas: marks GDAS S3's tests (deselect with '-m "not gdas"')
 
+    merge: merge PR from ceph/s3-tests project.
+
 
 rp_uuid = xxxx
 rp_endpoint = http://your-reportportal-url

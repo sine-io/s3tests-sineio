@@ -321,6 +321,7 @@ class TestBucketTagging(TestTaggingBase):
 
     @pytest.mark.fails_on_sio
     @pytest.mark.xfail(reason="预期：当没设置桶标签的时候，获取标签返回NoSuchTagSetError", run=True, strict=True)
+    @pytest.mark.merge  # merge PR: #464
     def test_set_bucket_tagging(self, s3cfg_global_unique):
         """
         测试-验证设置存储桶的tags
@@ -350,7 +351,9 @@ class TestBucketTagging(TestTaggingBase):
         self.eq(response['TagSet'][0]['Key'], 'Hello')
         self.eq(response['TagSet'][0]['Value'], 'World')
 
-        client.delete_bucket_tagging(Bucket=bucket_name)
+        response = client.delete_bucket_tagging(Bucket=bucket_name)
+        self.eq(response['ResponseMetadata']['HTTPStatusCode'], 204)
+
         e = assert_raises(ClientError, client.get_bucket_tagging, Bucket=bucket_name)
         status, error_code = self.get_status_and_error_code(e.response)
         self.eq(status, 404)

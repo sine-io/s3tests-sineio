@@ -418,31 +418,6 @@ class TestObjectHeaders(TestHeadersBase):
         self.eq(error_code, 'MissingContentLength')
 
     @tag('auth_common')
-    # TODO: remove 'fails_on_sio' and once we have learned how to remove the content-length header
-    @pytest.mark.fails_on_sio
-    def test_object_create_bad_content_length_mismatch_above(self, s3cfg_global_unique):
-        """
-        测试-验证上传对象时，设置Content-Length的值大于真实对象的Content-Length，测试失败，返回400响应码
-        """
-        # content = 'bar'
-        # length = len(content) + 1
-        # headers = {'Content-Length': str(length)}
-        #
-        # client = get_client(s3cfg_global_unique)
-        # bucket_name = self.get_new_bucket(client, s3cfg_global_unique)
-        # key_name = 'foo'
-        #
-        # add_headers = (lambda **kwargs: kwargs['params']['headers'].update(headers))
-        # client.meta.events.register('before-sign.s3.PutObject', add_headers)
-        # e = assert_raises(ClientError, client.put_object, Bucket=bucket_name, Key=key_name, Body=content)
-
-        headers = {'Content-Length': '4'}  # content is 'bar', content_length is 3, so we got 4.
-        e = self.add_header_create_bad_object(s3cfg_global_unique, headers)
-
-        status, error_code = self.get_status_and_error_code(e.response)
-        self.eq(status, 400)
-
-    @tag('auth_common')
     def test_object_create_bad_content_type_invalid(self, s3cfg_global_unique):
         """
         (operation='create w/content type text/plain')

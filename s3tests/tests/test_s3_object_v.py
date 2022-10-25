@@ -923,6 +923,23 @@ class TestCopyObject(TestObjectBase):
         response = client.get_object(Bucket=bucket_name, Key='bar321foo')
         self.eq(response['ContentLength'], 0)
 
+    @pytest.mark.merge  # merge ceph/s3-tests PR #473, sine. 2022.10.25
+    def test_object_copy_16m(self, s3cfg_global_unique):
+        """
+        测试-验证在同一个存储桶里拷贝16MB的对象
+        """
+        client = get_client(s3cfg_global_unique)
+
+        bucket_name = self.get_new_bucket(client, s3cfg_global_unique)
+        key1 = 'obj1'
+        client.put_object(Bucket=bucket_name, Key=key1, Body=bytearray(16 * 1024 * 1024))
+
+        copy_source = {'Bucket': bucket_name, 'Key': key1}
+        key2 = 'obj2'
+        client.copy_object(Bucket=bucket_name, Key=key2, CopySource=copy_source)
+        response = client.get_object(Bucket=bucket_name, Key=key2)
+        self.eq(response['ContentLength'], 16 * 1024 * 1024)
+
     def test_object_copy_same_bucket(self, s3cfg_global_unique):
         """
         测试-验证在同一个存储桶中拷贝对象(非0字节)

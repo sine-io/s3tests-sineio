@@ -471,6 +471,38 @@ class TestObjectLock(TestBaseClass):
                                         BypassGovernanceRetention=True)
         self.eq(response['ResponseMetadata']['HTTPStatusCode'], 204)
 
+    @pytest.mark.merge  # merge PR: #461, sine. 2022.10.25
+    def test_object_lock_delete_object_with_retention_and_marker(self, s3cfg_global_unique):
+        """
+        测试-验证Test delete object with retention and delete marker
+        """
+        client = get_client(s3cfg_global_unique)
+
+        bucket_name = self.get_new_bucket_name(s3cfg_global_unique)
+        client.create_bucket(Bucket=bucket_name, ObjectLockEnabledForBucket=True)
+        key = 'file1'
+
+        response = client.put_object(Bucket=bucket_name, Body='abc', Key=key)
+        retention = {'Mode': 'GOVERNANCE', 'RetainUntilDate': datetime.datetime(2030, 1, 1, tzinfo=pytz.UTC)}
+        client.put_object_retention(Bucket=bucket_name, Key=key, Retention=retention)
+        del_response = client.delete_object(Bucket=bucket_name, Key=key)
+        e = assert_raises(ClientError, client.delete_object, Bucket=bucket_name, Key=key,
+                          VersionId=response['VersionId'])
+        status, error_code = self.get_status_and_error_code(e.response)
+        self.eq(status, 403)
+        self.eq(error_code, 'AccessDenied')
+
+        client.delete_object(Bucket=bucket_name, Key=key, VersionId=del_response['VersionId'])
+        e = assert_raises(ClientError, client.delete_object, Bucket=bucket_name, Key=key,
+                          VersionId=response['VersionId'])
+        status, error_code = self.get_status_and_error_code(e.response)
+        self.eq(status, 403)
+        self.eq(error_code, 'AccessDenied')
+
+        response = client.delete_object(Bucket=bucket_name, Key=key, VersionId=response['VersionId'],
+                                        BypassGovernanceRetention=True)
+        self.eq(response['ResponseMetadata']['HTTPStatusCode'], 204)
+
     def test_object_lock_multi_delete_object_with_retention(self, s3cfg_global_unique):
         """
         (operation='Test multi-delete object with retention')
