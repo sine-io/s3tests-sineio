@@ -629,7 +629,7 @@ class TestLifecycleHighLevel(TestLifecycleBase):
         response = client.put_bucket_lifecycle_configuration(Bucket=bucket_name, LifecycleConfiguration=lifecycle)
         self.eq(response['ResponseMetadata']['HTTPStatusCode'], 200)
 
-    def test_lifecycle_set_noncurrent_transition(self, s3cfg_global_unique):
+    def test_lifecycle_set_non_current_transition(self, s3cfg_global_unique):
         """
         测试-验证设置生命周期转储参数NoncurrentVersionTransitions和NoncurrentVersionExpiration成功
         """
@@ -1063,7 +1063,7 @@ class TestLifecycleNeedSpeedup(TestLifecycleBase):
         self.eq(len(expire3_keys[sc[2]]), 2)
 
     # @pytest.mark.sio_maybe
-    def test_lifecycle_noncur_transition(self, s3cfg_global_unique):
+    def test_lifecycle_non_current_transition(self, s3cfg_global_unique):
         """
         测试-验证生命周期参数NoncurrentVersionTransitions和NoncurrentVersionExpiration生效，需要设置加速（10s为1天）；
         """

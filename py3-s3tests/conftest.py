@@ -152,7 +152,7 @@ def pytest_addoption(parser: Any) -> None:
     group.addoption(
         "--s3cfg",
         default=CFG_PATH,
-        help="s3tests.conf path, defaults to s3tests_ess/s3tests.conf.",
+        help="s3tests.conf path, defaults to s3tests/s3tests.conf",
     )
 
 # -------------------------------------------- Gen s3cfg from s3tests.conf end ---------------------------- #

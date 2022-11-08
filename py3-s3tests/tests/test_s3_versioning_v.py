@@ -460,6 +460,8 @@ class TestVersioning(TestVersioningBase):
         response = client.list_object_versions(Bucket=bucket_name)
         self.eq(('Versions' in response), False)
 
+    @pytest.mark.fails_on_sio
+    @pytest.mark.xfail(reason="", run=True, strict=True)
     def test_versioning_obj_suspend_versions(self, s3cfg_global_unique):
         """
         测试-验证暂停多版本后，进行多版本对象操作
@@ -861,7 +863,7 @@ class TestVersioning(TestVersioningBase):
                        'StorageClass': 'STANDARD',
                        'VersionId': 'f2Pr-lv5VjDrcFwV.tjd6vBqkixby10'}]}
         """
-        # 1. overwrite this object which versionId is null, so DeleteMarkers is disappeared.
+        # 1. overwrite this object which versionId is null, so DeleteMarkers disappeared.
         # 2. VersionId's total number is six.
         self.overwrite_suspended_versioning_obj(client, bucket_name, key, version_ids, contents, 'null content 3')
         """
@@ -1115,7 +1117,14 @@ class TestVersioning(TestVersioningBase):
         self.eq(len(version_ids), 0)
         self.eq(len(version_ids), len(contents))
 
-        client.delete_object(Bucket=bucket_name, Key=key)
+        # ---------------- prepare for teardown ---------------- #
+        # 1. enable Versioning
+        self.check_configure_versioning_retry(client, bucket_name, "Enabled", "Enabled")
+
+        # 2. delete DeleteMarker which value is null
+        # https://docs.aws.amazon.com/zh_cn/AmazonS3/latest/userguide/ManagingDelMarkers.html
+        # 要删除具有 NULL 版本 ID 的删除标记，必须在 DeleteObject 请求中将 NULL 作为版本 ID 传递。
+        client.delete_object(Bucket=bucket_name, Key=key, VersionId='null')
         response = client.list_object_versions(Bucket=bucket_name)
         self.eq(('Versions' in response), False)
         """
@@ -1146,43 +1155,14 @@ class TestVersioning(TestVersioningBase):
                               'RetryAttempts': 0},
          'VersionIdMarker': ''}
         """
-        # client.put_object(Bucket=bucket_name, Key=key, Body="123")
-        """
-        {'DeleteMarkers': [{'IsLatest': False,
-                            'Key': 'testobj',
-                            'LastModified': datetime.datetime(2022, 5, 26, 3, 32, 10, 12000, tzinfo=tzutc()),
-                            'Owner': {'DisplayName': 'wanghx', 'ID': 'wanghx'},
-                            'VersionId': 'SP19U6flH86mcT6X7cFXh8m2sGPRMxL'},
-                           {'IsLatest': False,
-                            'Key': 'testobj',
-                            'LastModified': datetime.datetime(2022, 5, 26, 3, 32, 3, 875000, tzinfo=tzutc()),
-                            'Owner': {'DisplayName': 'wanghx', 'ID': 'wanghx'},
-                            'VersionId': 'null'}],
-         'EncodingType': 'url',
-         'IsTruncated': False,
-         'KeyMarker': '',
-         'MaxKeys': 1000,
-         'Name': 'ess-qporxi1n9tbr51fqrxhff7fjr-1',
-         'Prefix': '',
-         'ResponseMetadata': {'HTTPHeaders': {'connection': 'Keep-Alive',
-                                              'content-type': 'application/xml',
-                                              'date': 'Thu, 26 May 2022 03:32:10 GMT',
-                                              'transfer-encoding': 'chunked',
-                                              'x-amz-request-id': 'tx000000000000000023f5a-00628ef4ba-33a7983-zone-1647582137'},
-                              'HTTPStatusCode': 200,
-                              'HostId': '',
-                              'RequestId': 'tx000000000000000023f5a-00628ef4ba-33a7983-zone-1647582137',
-                              'RetryAttempts': 0},
-         'VersionIdMarker': '',
-         'Versions': [{'ETag': '"202cb962ac59075b964b07152d234b70"',
-                       'IsLatest': True,
-                       'Key': 'testobj',
-                       'LastModified': datetime.datetime(2022, 5, 26, 3, 32, 10, 309000, tzinfo=tzutc()),
-                       'Owner': {'DisplayName': 'wanghx', 'ID': 'wanghx'},
-                       'Size': 3,
-                       'StorageClass': 'STANDARD',
-                       'VersionId': 'VVY-uC27gaYGmJ5sNhsFY1LY0bX42SP'}]}
-        """
+
+        # 3. versioning suspended
+        self.check_configure_versioning_retry(client, bucket_name, "Suspended", "Suspended")
+
+        # 4. try to delete the bucket
+        res = client.delete_bucket(Bucket=bucket_name)
+        self.eq(self.get_status(res), 200)
+        # ---------------- prepare for teardown ---------------- #
 
     def test_versioning_obj_create_versions_remove_all(self, s3cfg_global_unique):
         """

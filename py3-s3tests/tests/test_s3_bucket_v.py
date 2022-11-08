@@ -2090,42 +2090,44 @@ class TestBucketNameRules(TestBucketBase):
         """
         self.check_bad_bucket_name(s3cfg_global_unique, '192.168.5.123')
 
-    @pytest.mark.fails_on_sio
-    @pytest.mark.xfail(reason="新规则变更为3~63，不是255，Ceph未添加此规则", run=True, strict=True)
-    def test_bucket_create_naming_bad_long(self, s3cfg_global_unique):
-        """
-        测试-验证存储桶名字长度限制，
-        而且新规则变更为3~63，不是255
-        """
-        invalid_bucket_name = 256 * 'a'
-        status, error_code = self.check_invalid_bucket_name(s3cfg_global_unique, invalid_bucket_name)
-        self.eq(status, 400)
+    # @pytest.mark.fails_on_sio
+    # @pytest.mark.xfail(reason="新规则变更为3~63，不是255，Ceph未添加此规则", run=True, strict=True)
+    # @pytest.mark.merge  # merge PR to avoid ParamValidationError in boto3
+    # def test_bucket_create_naming_bad_long(self, s3cfg_global_unique):
+    #     """
+    #     测试-验证存储桶名字长度限制，
+    #     而且新规则变更为3~63，不是255
+    #     """
+    #     invalid_bucket_name = 256 * 'a'
+    #     status, error_code = self.check_invalid_bucket_name(s3cfg_global_unique, invalid_bucket_name)
+    #     self.eq(status, 400)
+    #
+    #     invalid_bucket_name = 280 * 'a'
+    #     status, error_code = self.check_invalid_bucket_name(s3cfg_global_unique, invalid_bucket_name)
+    #     self.eq(status, 400)
+    #
+    #     invalid_bucket_name = 3000 * 'a'
+    #     status, error_code = self.check_invalid_bucket_name(s3cfg_global_unique, invalid_bucket_name)
+    #     self.eq(status, 400)
 
-        invalid_bucket_name = 280 * 'a'
-        status, error_code = self.check_invalid_bucket_name(s3cfg_global_unique, invalid_bucket_name)
-        self.eq(status, 400)
-
-        invalid_bucket_name = 3000 * 'a'
-        status, error_code = self.check_invalid_bucket_name(s3cfg_global_unique, invalid_bucket_name)
-        self.eq(status, 400)
-
-    @pytest.mark.fails_on_sio
-    @pytest.mark.xfail(reason="预期：[a-zA-Z0-9._-]，Ceph未添加此规则", run=True, strict=True)
-    def test_bucket_create_naming_bad_punctuation(self, s3cfg_global_unique):
-        """
-        测试-验证存储桶名字里含有英文感叹号，
-        """
-        # Bucket name must match the regex "^[a-zA-Z0-9.\-_]{1,255}$"
-        # or be an ARN matching the regex "^arn:(aws).*:(s3|s3-object-lambda):[a-z\-0-9]*:[0-9]{12}:accesspoint[/:][a-zA-Z0-9\-.
-        # ]{1,63}$|^arn:(aws).*:s3-outposts:[a-z\-0-9]+:[0-9]{12}:outpost[/:][a-zA-Z0-9\-]{1,63}[/:]accesspoint[/:][a-zA-Z0-9\-]{1,63}$"
-
-        # characters other than [a-zA-Z0-9._-]
-        invalid_bucket_name = 'alpha!soup'
-        status, error_code = self.check_invalid_bucket_name(s3cfg_global_unique, invalid_bucket_name)
-        print(status, error_code)
-        # TODO: figure out why a 403 is coming out in boto3 but not in boto2.
-        self.eq(status, 400)
-        self.eq(error_code, 'InvalidBucketName')
+    # @pytest.mark.fails_on_sio
+    # @pytest.mark.xfail(reason="预期：[a-zA-Z0-9._-]，Ceph未添加此规则", run=True, strict=True)
+    # @pytest.mark.merge  # merge PR to avoid ParamValidationError in boto3
+    # def test_bucket_create_naming_bad_punctuation(self, s3cfg_global_unique):
+    #     """
+    #     测试-验证存储桶名字里含有英文感叹号，
+    #     """
+    #     # Bucket name must match the regex "^[a-zA-Z0-9.\-_]{1,255}$"
+    #     # or be an ARN matching the regex "^arn:(aws).*:(s3|s3-object-lambda):[a-z\-0-9]*:[0-9]{12}:accesspoint[/:][a-zA-Z0-9\-.
+    #     # ]{1,63}$|^arn:(aws).*:s3-outposts:[a-z\-0-9]+:[0-9]{12}:outpost[/:][a-zA-Z0-9\-]{1,63}[/:]accesspoint[/:][a-zA-Z0-9\-]{1,63}$"
+    #
+    #     # characters other than [a-zA-Z0-9._-]
+    #     invalid_bucket_name = 'alpha!soup'
+    #     status, error_code = self.check_invalid_bucket_name(s3cfg_global_unique, invalid_bucket_name)
+    #     print(status, error_code)
+    #     # TODO: figure out why a 403 is coming out in boto3 but not in boto2.
+    #     self.eq(status, 400)
+    #     self.eq(error_code, 'InvalidBucketName')
 
     @pytest.mark.fails_on_sio
     @pytest.mark.xfail(reason="预期：下划线限制规则，Ceph未添加", run=True, strict=True)

@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <title>Test Report</title>
+    <style>body {
+  font-family: Helvetica, Arial, sans-serif;
+  font-size: 12px;
+  /* do not increase min-width as some may use split screens */
+  min-width: 800px;
+  color: #999;
+}
+
+h1 {
+  font-size: 24px;
+  color: black;
+}
+
+h2 {
+  font-size: 16px;
+  color: black;
+}
+
+p {
+  color: black;
+}
+
+a {
+  color: #999;
+}
+
+table {
+  border-collapse: collapse;
+}
+
+/******************************
+ * SUMMARY INFORMATION
+ ******************************/
+#environment td {
+  padding: 5px;
+  border: 1px solid #E6E6E6;
+}
+#environment tr:nth-child(odd) {
+  background-color: #f6f6f6;
+}
+
+/******************************
+ * TEST RESULT COLORS
+ ******************************/
+span.passed,
+.passed .col-result {
+  color: green;
+}
+
+span.skipped,
+span.xfailed,
+span.rerun,
+.skipped .col-result,
+.xfailed .col-result,
+.rerun .col-result {
+  color: orange;
+}
+
+span.error,
+span.failed,
+span.xpassed,
+.error .col-result,
+.failed .col-result,
+.xpassed .col-result {
+  color: red;
+}
+
+/******************************
+ * RESULTS TABLE
+ *
+ * 1. Table Layout
+ * 2. Extra
+ * 3. Sorting items
+ *
+ ******************************/
+/*------------------
+ * 1. Table Layout
+ *------------------*/
+#results-table {
+  border: 1px solid #e6e6e6;
+  color: #999;
+  font-size: 12px;
+  width: 100%;
+}
+#results-table th,
+#results-table td {
+  padding: 5px;
+  border: 1px solid #E6E6E6;
+  text-align: left;
+}
+#results-table th {
+  font-weight: bold;
+}
+
+/*------------------
+ * 2. Extra
+ *------------------*/
+.log {
+  background-color: #e6e6e6;
+  border: 1px solid #e6e6e6;
+  color: black;
+  display: block;
+  font-family: "Courier New", Courier, monospace;
+  height: 230px;
+  overflow-y: scroll;
+  padding: 5px;
+  white-space: pre-wrap;
+}
+.log:only-child {
+  height: inherit;
+}
+
+div.image {
+  border: 1px solid #e6e6e6;
+  float: right;
+  height: 240px;
+  margin-left: 5px;
+  overflow: hidden;
+  width: 320px;
+}
+div.image img {
+  width: 320px;
+}
+
+div.video {
+  border: 1px solid #e6e6e6;
+  float: right;
+  height: 240px;
+  margin-left: 5px;
+  overflow: hidden;
+  width: 320px;
+}
+div.video video {
+  overflow: hidden;
+  width: 320px;
+  height: 240px;
+}
+
+.collapsed {
+  display: none;
+}
+
+.expander::after {
+  content: " (show details)";
+  color: #BBB;
+  font-style: italic;
+  cursor: pointer;
+}
+
+.collapser::after {
+  content: " (hide details)";
+  color: #BBB;
+  font-style: italic;
+  cursor: pointer;
+}
+
+/*------------------
+ * 3. Sorting items
+ *------------------*/
+.sortable {
+  cursor: pointer;
+}
+
+.sort-icon {
+  font-size: 0px;
+  float: left;
+  margin-right: 5px;
+  margin-top: 5px;
+  /*triangle*/
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+}
+.inactive .sort-icon {
+  /*finish triangle*/
+  border-top: 8px solid #E6E6E6;
+}
+.asc.active .sort-icon {
+  /*finish triangle*/
+  border-bottom: 8px solid #999;
+}
+.desc.active .sort-icon {
+  /*finish triangle*/
+  border-top: 8px solid #999;
+}
+</style></head>
+  <body onLoad="init()">
+    <script>/* This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this file,
+ * You can obtain one at http://mozilla.org/MPL/2.0/. */
+
+
+function toArray(iter) {
+    if (iter === null) {
+        return null;
+    }
+    return Array.prototype.slice.call(iter);
+}
+
+function find(selector, elem) { // eslint-disable-line no-redeclare
+    if (!elem) {
+        elem = document;
+    }
+    return elem.querySelector(selector);
+}
+
+function findAll(selector, elem) {
+    if (!elem) {
+        elem = document;
+    }
+    return toArray(elem.querySelectorAll(selector));
+}
+
+function sortColumn(elem) {
+    toggleSortStates(elem);
+    const colIndex = toArray(elem.parentNode.childNodes).indexOf(elem);
+    let key;
+    if (elem.classList.contains('result')) {
+        key = keyResult;
+    } else if (elem.classList.contains('links')) {
+        key = keyLink;
+    } else {
+        key = keyAlpha;
+    }
+    sortTable(elem, key(colIndex));
+}
+
+function showAllExtras() { // eslint-disable-line no-unused-vars
+    findAll('.col-result').forEach(showExtras);
+}
+
+function hideAllExtras() { // eslint-disable-line no-unused-vars
+    findAll('.col-result').forEach(hideExtras);
+}
+
+function showExtras(colresultElem) {
+    const extras = colresultElem.parentNode.nextElementSibling;
+    const expandcollapse = colresultElem.firstElementChild;
+    extras.classList.remove('collapsed');
+    expandcollapse.classList.remove('expander');
+    expandcollapse.classList.add('collapser');
+}
+
+function hideExtras(colresultElem) {
+    const extras = colresultElem.parentNode.nextElementSibling;
+    const expandcollapse = colresultElem.firstElementChild;
+    extras.classList.add('collapsed');
+    expandcollapse.classList.remove('collapser');
+    expandcollapse.classList.add('expander');
+}
+
+function showFilters() {
+    const filterItems = document.getElementsByClassName('filter');
+    for (let i = 0; i < filterItems.length; i++)
+        filterItems[i].hidden = false;
+}
+
+function addCollapse() {
+    // Add links for show/hide all
+    const resulttable = find('table#results-table');
+    const showhideall = document.createElement('p');
+    showhideall.innerHTML = '<a href="javascript:showAllExtras()">Show all details</a> / ' +
+                            '<a href="javascript:hideAllExtras()">Hide all details</a>';
+    resulttable.parentElement.insertBefore(showhideall, resulttable);
+
+    // Add show/hide link to each result
+    findAll('.col-result').forEach(function(elem) {
+        const collapsed = getQueryParameter('collapsed') || 'Passed';
+        const extras = elem.parentNode.nextElementSibling;
+        const expandcollapse = document.createElement('span');
+        if (extras.classList.contains('collapsed')) {
+            expandcollapse.classList.add('expander');
+        } else if (collapsed.includes(elem.innerHTML)) {
+            extras.classList.add('collapsed');
+            expandcollapse.classList.add('expander');
+        } else {
+            expandcollapse.classList.add('collapser');
+        }
+        elem.appendChild(expandcollapse);
+
+        elem.addEventListener('click', function(event) {
+            if (event.currentTarget.parentNode.nextElementSibling.classList.contains('collapsed')) {
+                showExtras(event.currentTarget);
+            } else {
+                hideExtras(event.currentTarget);
+            }
+        });
+    });
+}
+
+function getQueryParameter(name) {
+    const match = RegExp('[?&]' + name + '=([^&]*)').exec(window.location.search);
+    return match && decodeURIComponent(match[1].replace(/\+/g, ' '));
+}
+
+function init () { // eslint-disable-line no-unused-vars
+    resetSortHeaders();
+
+    addCollapse();
+
+    showFilters();
+
+    sortColumn(find('.initial-sort'));
+
+    findAll('.sortable').forEach(function(elem) {
+        elem.addEventListener('click',
+            function() {
+                sortColumn(elem);
+            }, false);
+    });
+}
+
+function sortTable(clicked, keyFunc) {
+    const rows = findAll('.results-table-row');
+    const reversed = !clicked.classList.contains('asc');
+    const sortedRows = sort(rows, keyFunc, reversed);
+    /* Whole table is removed here because browsers acts much slower
+     * when appending existing elements.
+     */
+    const thead = document.getElementById('results-table-head');
+    document.getElementById('results-table').remove();
+    const parent = document.createElement('table');
+    parent.id = 'results-table';
+    parent.appendChild(thead);
+    sortedRows.forEach(function(elem) {
+        parent.appendChild(elem);
+    });
+    document.getElementsByTagName('BODY')[0].appendChild(parent);
+}
+
+function sort(items, keyFunc, reversed) {
+    const sortArray = items.map(function(item, i) {
+        return [keyFunc(item), i];
+    });
+
+    sortArray.sort(function(a, b) {
+        const keyA = a[0];
+        const keyB = b[0];
+
+        if (keyA == keyB) return 0;
+
+        if (reversed) {
+            return keyA < keyB ? 1 : -1;
+        } else {
+            return keyA > keyB ? 1 : -1;
+        }
+    });
+
+    return sortArray.map(function(item) {
+        const index = item[1];
+        return items[index];
+    });
+}
+
+function keyAlpha(colIndex) {
+    return function(elem) {
+        return elem.childNodes[1].childNodes[colIndex].firstChild.data.toLowerCase();
+    };
+}
+
+function keyLink(colIndex) {
+    return function(elem) {
+        const dataCell = elem.childNodes[1].childNodes[colIndex].firstChild;
+        return dataCell == null ? '' : dataCell.innerText.toLowerCase();
+    };
+}
+
+function keyResult(colIndex) {
+    return function(elem) {
+        const strings = ['Error', 'Failed', 'Rerun', 'XFailed', 'XPassed',
+            'Skipped', 'Passed'];
+        return strings.indexOf(elem.childNodes[1].childNodes[colIndex].firstChild.data);
+    };
+}
+
+function resetSortHeaders() {
+    findAll('.sort-icon').forEach(function(elem) {
+        elem.parentNode.removeChild(elem);
+    });
+    findAll('.sortable').forEach(function(elem) {
+        const icon = document.createElement('div');
+        icon.className = 'sort-icon';
+        icon.textContent = 'vvv';
+        elem.insertBefore(icon, elem.firstChild);
+        elem.classList.remove('desc', 'active');
+        elem.classList.add('asc', 'inactive');
+    });
+}
+
+function toggleSortStates(elem) {
+    //if active, toggle between asc and desc
+    if (elem.classList.contains('active')) {
+        elem.classList.toggle('asc');
+        elem.classList.toggle('desc');
+    }
+
+    //if inactive, reset all other functions and add ascending active
+    if (elem.classList.contains('inactive')) {
+        resetSortHeaders();
+        elem.classList.remove('inactive');
+        elem.classList.add('active');
+    }
+}
+
+function isAllRowsHidden(value) {
+    return value.hidden == false;
+}
+
+function filterTable(elem) { // eslint-disable-line no-unused-vars
+    const outcomeAtt = 'data-test-result';
+    const outcome = elem.getAttribute(outcomeAtt);
+    const classOutcome = outcome + ' results-table-row';
+    const outcomeRows = document.getElementsByClassName(classOutcome);
+
+    for(let i = 0; i < outcomeRows.length; i++){
+        outcomeRows[i].hidden = !elem.checked;
+    }
+
+    const rows = findAll('.results-table-row').filter(isAllRowsHidden);
+    const allRowsHidden = rows.length == 0 ? true : false;
+    const notFoundMessage = document.getElementById('not-found-message');
+    notFoundMessage.hidden = !allRowsHidden;
+}
+</script>
+    <h1>S3 Compatibility Automation Test Report</h1>
+    <p>Report generated on 25-Oct-2022 at 14:09:04 by <a href="https://pypi.python.org/pypi/pytest-html">pytest-html</a> v3.1.1</p>
+    <h2>Environment</h2>
+    <table id="environment">
+      <tr>
+        <td>JAVA_HOME</td>
+        <td>C:\Program Files\Java\jdk1.8.0_261</td></tr>
+      <tr>
+        <td>Packages</td>
+        <td>{"pluggy": "1.0.0", "py": "1.11.0", "pytest": "7.1.1"}</td></tr>
+      <tr>
+        <td>Platform</td>
+        <td>Windows-10-10.0.18363-SP0</td></tr>
+      <tr>
+        <td>Plugins</td>
+        <td>{"anyio": "3.5.0", "forked": "1.4.0", "html": "3.1.1", "metadata": "2.0.1", "reportportal": "5.1.2", "rerunfailures": "10.2", "xdist": "2.5.0"}</td></tr>
+      <tr>
+        <td>Python</td>
+        <td>3.10.0</td></tr></table>
+    <h2>Summary</h2>
+    <p>Department : Products Testing Center</p>
+    <p>Test Group: PTC Automation-Test Group</p>
+    <p>1 tests ran in 20.55 seconds. </p>
+    <p class="filter" hidden="true">(Un)check the boxes to filter the results.</p><input checked="true" class="filter" data-test-result="passed" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="passed">0 passed</span>, <input checked="true" class="filter" data-test-result="skipped" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="skipped">0 skipped</span>, <input checked="true" class="filter" data-test-result="failed" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="failed">1 failed</span>, <input checked="true" class="filter" data-test-result="error" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="error">0 errors</span>, <input checked="true" class="filter" data-test-result="xfailed" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="xfailed">0 expected failures</span>, <input checked="true" class="filter" data-test-result="xpassed" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="xpassed">0 unexpected passes</span>, <input checked="true" class="filter" data-test-result="rerun" disabled="true" hidden="true" name="filter_checkbox" onChange="filterTable(this)" type="checkbox"/><span class="rerun">0 rerun</span>
+    <h2>Results</h2>
+    <table id="results-table">
+      <thead id="results-table-head">
+        <tr>
+          <th class="sortable result initial-sort" col="result">Result</th>
+          <th class="sortable time" col="time">Start Time</th>
+          <th class="sortable" col="name">Test</th>
+          <th>TestCase Description</th>
+          <th class="sortable" col="duration">Duration</th></tr>
+        <tr hidden="true" id="not-found-message">
+          <th colspan="5">No results found. Try to check the filters</th></tr></thead>
+      <tbody class="failed results-table-row">
+        <tr>
+          <td class="col-result">Failed</td>
+          <td class="col-time">2022-10-25 06:09:04.634964</td>
+          <td class="col-name">tests/test_s3_versioning_v.py::TestVersioning::test_versioning_obj_suspend_versions</td>
+          <td>
+        测试-验证暂停多版本后，进行多版本对象操作
+        </td>
+          <td class="col-duration">00:00:19.87</td></tr>
+        <tr>
+          <td class="extra" colspan="5">
+            <div class="log">self = &lt;s3tests.tests.test_s3_versioning_v.TestVersioning object at 0x000002F18C8E5D80&gt;<br/>s3cfg_global_unique = Munch({&#x27;default_host&#x27;: &#x27;172.38.30.194&#x27;, &#x27;default_port&#x27;: 7480, &#x27;default_is_secure&#x27;: False, &#x27;ssh_user&#x27;: &#x27;root&#x27;, &#x27;ssh_pas...r&#x27;, &#x27;alt_email&#x27;: &#x27;altuser@example.com&#x27;, &#x27;bucket_prefix&#x27;: &#x27;sio-rh5ljc97i22nlst14kdqg11pt-&#x27;, &#x27;bucket_counter&#x27;: count(2)})<br/><br/>    def test_versioning_obj_suspend_versions(self, s3cfg_global_unique):<br/>        &quot;&quot;&quot;<br/>        测试-验证暂停多版本后，进行多版本对象操作<br/>        &quot;&quot;&quot;<br/>        client = get_client(s3cfg_global_unique)<br/>        bucket_name = self.get_new_bucket(client, s3cfg_global_unique)<br/>        # versioning enabled<br/>        self.check_configure_versioning_retry(client, bucket_name, &quot;Enabled&quot;, &quot;Enabled&quot;)<br/>    <br/>        key = &#x27;testobj&#x27;<br/>        num_versions = 5<br/>    <br/>        (version_ids, contents) = self.create_multiple_versions(client, bucket_name, key, num_versions)<br/>        # versioning suspended<br/>        self.check_configure_versioning_retry(client, bucket_name, &quot;Suspended&quot;, &quot;Suspended&quot;)<br/>        &quot;&quot;&quot;<br/>        {&#x27;EncodingType&#x27;: &#x27;url&#x27;,<br/>         &#x27;IsTruncated&#x27;: False,<br/>         &#x27;KeyMarker&#x27;: &#x27;&#x27;,<br/>         &#x27;MaxKeys&#x27;: 1000,<br/>         &#x27;Name&#x27;: &#x27;ess-ko0a01tu9h1p1rdnyb3fvmhn0-1&#x27;,<br/>         &#x27;Prefix&#x27;: &#x27;&#x27;,<br/>         &#x27;ResponseMetadata&#x27;: {&#x27;HTTPHeaders&#x27;: {&#x27;connection&#x27;: &#x27;Keep-Alive&#x27;,<br/>                                              &#x27;content-type&#x27;: &#x27;application/xml&#x27;,<br/>                                              &#x27;date&#x27;: &#x27;Thu, 26 May 2022 02:35:35 GMT&#x27;,<br/>                                              &#x27;transfer-encoding&#x27;: &#x27;chunked&#x27;,<br/>                                              &#x27;x-amz-request-id&#x27;: &#x27;tx000000000000000023dd3-00628ee776-33a7983-zone-1647582137&#x27;},<br/>                              &#x27;HTTPStatusCode&#x27;: 200,<br/>                              &#x27;HostId&#x27;: &#x27;&#x27;,<br/>                              &#x27;RequestId&#x27;: &#x27;tx000000000000000023dd3-00628ee776-33a7983-zone-1647582137&#x27;,<br/>                              &#x27;RetryAttempts&#x27;: 0},<br/>         &#x27;VersionIdMarker&#x27;: &#x27;&#x27;,<br/>         &#x27;Versions&#x27;: [{&#x27;ETag&#x27;: &#x27;&quot;27ddd45b69e721be1dec90860cb39c5e&quot;&#x27;,<br/>                       &#x27;IsLatest&#x27;: True,<br/>                       &#x27;Key&#x27;: &#x27;testobj&#x27;,<br/>                       &#x27;LastModified&#x27;: datetime.datetime(2022, 5, 26, 2, 35, 34, 130000, tzinfo=tzutc()),<br/>                       &#x27;Owner&#x27;: {&#x27;DisplayName&#x27;: &#x27;wanghx&#x27;, &#x27;ID&#x27;: &#x27;wanghx&#x27;},<br/>                       &#x27;Size&#x27;: 9,<br/>                       &#x27;StorageClass&#x27;: &#x27;STANDARD&#x27;,<br/>                       &#x27;VersionId&#x27;: &#x27;xv8AaYPLXxaHzuo2gOCK-nppqujRtnD&#x27;},<br/>                      {&#x27;ETag&#x27;: &#x27;&quot;6deb7d5ca68840f07d8e56764c8dc673&quot;&#x27;,<br/>                       &#x27;IsLatest&#x27;: False,<br/>                       &#x27;Key&#x27;: &#x27;testobj&#x27;,<br/>                       &#x27;LastModified&#x27;: datetime.datetime(2022, 5, 26, 2, 35, 34, 39000, tzinfo=tzutc()),<br/>                       &#x27;Owner&#x27;: {&#x27;DisplayName&#x27;: &#x27;wanghx&#x27;, &#x27;ID&#x27;: &#x27;wanghx&#x27;},<br/>                       &#x27;Size&#x27;: 9,<br/>                       &#x27;StorageClass&#x27;: &#x27;STANDARD&#x27;,<br/>                       &#x27;VersionId&#x27;: &#x27;ZTrIKvShJ3.z40lozRYs4WCTYQPF3cB&#x27;},<br/>                      {&#x27;ETag&#x27;: &#x27;&quot;610bd1fcc43e89895ec87162b65226c3&quot;&#x27;,<br/>                       &#x27;IsLatest&#x27;: False,<br/>                       &#x27;Key&#x27;: &#x27;testobj&#x27;,<br/>                       &#x27;LastModified&#x27;: datetime.datetime(2022, 5, 26, 2, 35, 33, 907000, tzinfo=tzutc()),<br/>                       &#x27;Owner&#x27;: {&#x27;DisplayName&#x27;: &#x27;wanghx&#x27;, &#x27;ID&#x27;: &#x27;wanghx&#x27;},<br/>                       &#x27;Size&#x27;: 9,<br/>                       &#x27;StorageClass&#x27;: &#x27;STANDARD&#x27;,<br/>                       &#x27;VersionId&#x27;: &#x27;Yopxs88Ik5lyS4zXyHBJFW8WMFNswLd&#x27;},<br/>                      {&#x27;ETag&#x27;: &#x27;&quot;928cae62314b95527918ee4a2447da01&quot;&#x27;,<br/>                       &#x27;IsLatest&#x27;: False,<br/>                       &#x27;Key&#x27;: &#x27;testobj&#x27;,<br/>                       &#x27;LastModified&#x27;: datetime.datetime(2022, 5, 26, 2, 35, 33, 779000, tzinfo=tzutc()),<br/>                       &#x27;Owner&#x27;: {&#x27;DisplayName&#x27;: &#x27;wanghx&#x27;, &#x27;ID&#x27;: &#x27;wanghx&#x27;},<br/>                       &#x27;Size&#x27;: 9,<br/>                       &#x27;StorageClass&#x27;: &#x27;STANDARD&#x27;,<br/>                       &#x27;VersionId&#x27;: &#x27;gA8gHvl5h0rlT0S95hGSOzCOXLVS12n&#x27;},<br/>                      {&#x27;ETag&#x27;: &#x27;&quot;8e689ba88b92e4020c6508e8a73e4ec1&quot;&#x27;,<br/>                       &#x27;IsLatest&#x27;: False,<br/>                       &#x27;Key&#x27;: &#x27;testobj&#x27;,<br/>                       &#x27;LastModified&#x27;: datetime.datetime(2022, 5, 26, 2, 35, 33, 592000, tzinfo=tzutc()),<br/>                       &#x27;Owner&#x27;: {&#x27;DisplayName&#x27;: &#x27;wanghx&#x27;, &#x27;ID&#x27;: &#x27;wanghx&#x27;},<br/>                       &#x27;Size&#x27;: 9,<br/>                       &#x27;StorageClass&#x27;: &#x27;STANDARD&#x27;,<br/>                       &#x27;VersionId&#x27;: &#x27;f2Pr-lv5VjDrcFwV.tjd6vBqkixby10&#x27;}]}<br/>        &quot;&quot;&quot;<br/>        # 1. delete-object, so DeleteMarkers will be created, and versionId is null.<br/>        # 2. pop this version, when versionId is null --- I think it is useless.<br/>        self.delete_suspended_versioning_obj(client, bucket_name, key, version_ids, contents)<br/>        &quot;&quot;&quot;<br/>        {&#x27;DeleteMarkers&#x27;: [{&#x27;IsLatest&#x27;: True,<br/>                            &#x27;Key&#x27;: &#x27;testobj&#x27;,<br/>                            &#x27;LastModified&#x27;: datetime.datetime(2022, 5, 26, 2, 35, 35, 298000, tzinfo=tzutc()),<br/>                            &#x27;Owner&#x27;: {&#x27;DisplayName&#x27;: &#x27;wanghx&#x27;, &#x27;ID&#x27;: &#x27;wanghx&#x27;},<br/>                            &#x27;VersionId&#x27;: &#x27;null&#x27;}],<br/>         &#x27;EncodingType&#x27;: &#x27;url&#x27;,<br/>         &#x27;IsTruncated&#x27;: False,<br/>         &#x27;KeyMarker&#x27;: &#x27;&#x27;,<br/>         &#x27;MaxKeys&#x27;: 1000,<br/>         &#x27;Name&#x27;: &#x27;ess-ko0a01tu9h1p1rdnyb3fvmhn0-1&#x27;,<br/>         &#x27;Prefix&#x27;: &#x27;&#x27;,<br/>         &#x27;ResponseMetadata&#x27;: {&#x27;HTTPHeaders&#x27;: {&#x27;connection&#x27;: &#x27;Keep-Alive&#x27;,<br/>                                              &#x27;content-type&#x27;: &#x27;application/xml&#x27;,<br/>                                              &#x27;date&#x27;: &#x27;Thu, 26 May 2022 02:35:35 GMT&#x27;,<br/>                                              &#x27;transfer-encoding&#x27;: &#x27;chunked&#x27;,<br/>                                              &#x27;x-amz-request-id&#x27;: &#x27;tx000000000000000023dd5-00628ee777-33a7983-zone-1647582137&#x27;},<br/>                              &#x27;HTTPStatusCode&#x27;: 200,<br/>                              &#x27;HostId&#x27;: &#x27;&#x27;,<br/>                              &#x27;RequestId&#x27;: &#x27;tx000000000000000023dd5-00628ee777-33a7983-zone-1647582137&#x27;,<br/>                              &#x27;RetryAttempts&#x27;: 0},<br/>         &#x27;VersionIdMarker&#x27;: &#x27;&#x27;,<br/>         &#x27;Versions&#x27;: [{&#x27;ETag&#x27;: &#x27;&quot;27ddd45b69e721be1dec90860cb39c5e&quot;&#x27;,<br/>                       &#x27;IsLatest&#x27;: False,<br/>                       &#x27;Key&#x27;: &#x27;testobj&#x27;,<br/>                       &#x27;LastModified&#x27;: datetime.datetime(2022, 5, 26, 2, 35, 34, 130000, tzinfo=tzutc()),<br/>                       &#x27;Owner&#x27;: {&#x27;DisplayName&#x27;: &#x27;wanghx&#x27;, &#x27;ID&#x27;: &#x27;wanghx&#x27;},<br/>                       &#x27;Size&#x27;: 9,<br/>                       &#x27;StorageClass&#x27;: &#x27;STANDARD&#x27;,<br/>                       &#x27;VersionId&#x27;: &#x27;xv8AaYPLXxaHzuo2gOCK-nppqujRtnD&#x27;},<br/>                      {&#x27;ETag&#x27;: &#x27;&quot;6deb7d5ca68840f07d8e56764c8dc673&quot;&#x27;,<br/>                       &#x27;IsLatest&#x27;: False,<br/>                       &#x27;Key&#x27;: &#x27;testobj&#x27;,<br/>                       &#x27;LastModified&#x27;: datetime.datetime(2022, 5, 26, 2, 35, 34, 39000, tzinfo=tzutc()),<br/>                       &#x27;Owner&#x27;: {&#x27;DisplayName&#x27;: &#x27;wanghx&#x27;, &#x27;ID&#x27;: &#x27;wanghx&#x27;},<br/>                       &#x27;Size&#x27;: 9,<br/>                       &#x27;StorageClass&#x27;: &#x27;STANDARD&#x27;,<br/>                       &#x27;VersionId&#x27;: &#x27;ZTrIKvShJ3.z40lozRYs4WCTYQPF3cB&#x27;},<br/>                      {&#x27;ETag&#x27;: &#x27;&quot;610bd1fcc43e89895ec87162b65226c3&quot;&#x27;,<br/>                       &#x27;IsLatest&#x27;: False,<br/>                       &#x27;Key&#x27;: &#x27;testobj&#x27;,<br/>                       &#x27;LastModified&#x27;: datetime.datetime(2022, 5, 26, 2, 35, 33, 907000, tzinfo=tzutc()),<br/>                       &#x27;Owner&#x27;: {&#x27;DisplayName&#x27;: &#x27;wanghx&#x27;, &#x27;ID&#x27;: &#x27;wanghx&#x27;},<br/>                       &#x27;Size&#x27;: 9,<br/>                       &#x27;StorageClass&#x27;: &#x27;STANDARD&#x27;,<br/>                       &#x27;VersionId&#x27;: &#x27;Yopxs88Ik5lyS4zXyHBJFW8WMFNswLd&#x27;},<br/>                      {&#x27;ETag&#x27;: &#x27;&quot;928cae62314b95527918ee4a2447da01&quot;&#x27;,<br/>                       &#x27;IsLatest&#x27;: False,<br/>                       &#x27;Key&#x27;: &#x27;testobj&#x27;,<br/>                       &#x27;LastModified&#x27;: datetime.datetime(2022, 5, 26, 2, 35, 33, 779000, tzinfo=tzutc()),<br/>                       &#x27;Owner&#x27;: {&#x27;DisplayName&#x27;: &#x27;wanghx&#x27;, &#x27;ID&#x27;: &#x27;wanghx&#x27;},<br/>                       &#x27;Size&#x27;: 9,<br/>                       &#x27;StorageClass&#x27;: &#x27;STANDARD&#x27;,<br/>                       &#x27;VersionId&#x27;: &#x27;gA8gHvl5h0rlT0S95hGSOzCOXLVS12n&#x27;},<br/>                      {&#x27;ETag&#x27;: &#x27;&quot;8e689ba88b92e4020c6508e8a73e4ec1&quot;&#x27;,<br/>                       &#x27;IsLatest&#x27;: False,<br/>                       &#x27;Key&#x27;: &#x27;testobj&#x27;,<br/>                       &#x27;LastModified&#x27;: datetime.datetime(2022, 5, 26, 2, 35, 33, 592000, tzinfo=tzutc()),<br/>                       &#x27;Owner&#x27;: {&#x27;DisplayName&#x27;: &#x27;wanghx&#x27;, &#x27;ID&#x27;: &#x27;wanghx&#x27;},<br/>                       &#x27;Size&#x27;: 9,<br/>                       &#x27;StorageClass&#x27;: &#x27;STANDARD&#x27;,<br/>                       &#x27;VersionId&#x27;: &#x27;f2Pr-lv5VjDrcFwV.tjd6vBqkixby10&#x27;}]}<br/>        &quot;&quot;&quot;<br/>        self.delete_suspended_versioning_obj(client, bucket_name, key, version_ids, contents)<br/>        &quot;&quot;&quot;<br/>        {&#x27;DeleteMarkers&#x27;: [{&#x27;IsLatest&#x27;: True,<br/>                            &#x27;Key&#x27;: &#x27;testobj&#x27;,<br/>                            &#x27;LastModified&#x27;: datetime.datetime(2022, 5, 26, 2, 35, 35, 604000, tzinfo=tzutc()),<br/>                            &#x27;Owner&#x27;: {&#x27;DisplayName&#x27;: &#x27;wanghx&#x27;, &#x27;ID&#x27;: &#x27;wanghx&#x27;},<br/>                            &#x27;VersionId&#x27;: &#x27;null&#x27;}],<br/>         &#x27;EncodingType&#x27;: &#x27;url&#x27;,<br/>         &#x27;IsTruncated&#x27;: False,<br/>         &#x27;KeyMarker&#x27;: &#x27;&#x27;,<br/>         &#x27;MaxKeys&#x27;: 1000,<br/>         &#x27;Name&#x27;: &#x27;ess-ko0a01tu9h1p1rdnyb3fvmhn0-1&#x27;,<br/>         &#x27;Prefix&#x27;: &#x27;&#x27;,<br/>         &#x27;ResponseMetadata&#x27;: {&#x27;HTTPHeaders&#x27;: {&#x27;connection&#x27;: &#x27;Keep-Alive&#x27;,<br/>                                              &#x27;content-type&#x27;: &#x27;application/xml&#x27;,<br/>                                              &#x27;date&#x27;: &#x27;Thu, 26 May 2022 02:35:35 GMT&#x27;,<br/>                                              &#x27;transfer-encoding&#x27;: &#x27;chunked&#x27;,<br/>                                              &#x27;x-amz-request-id&#x27;: &#x27;tx000000000000000023dd7-00628ee777-33a7983-zone-1647582137&#x27;},<br/>                              &#x27;HTTPStatusCode&#x27;: 200,<br/>                              &#x27;HostId&#x27;: &#x27;&#x27;,<br/>                              &#x27;RequestId&#x27;: &#x27;tx000000000000000023dd7-00628ee777-33a7983-zone-1647582137&#x27;,<br/>                              &#x27;RetryAttempts&#x27;: 0},<br/>         &#x27;VersionIdMarker&#x27;: &#x27;&#x27;,<br/>         &#x27;Versions&#x27;: [{&#x27;ETag&#x27;: &#x27;&quot;27ddd45b69e721be1dec90860cb39c5e&quot;&#x27;,<br/>                       &#x27;IsLatest&#x27;: False,<br/>                       &#x27;Key&#x27;: &#x27;testobj&#x27;,<br/>                       &#x27;LastModified&#x27;: datetime.datetime(2022, 5, 26, 2, 35, 34, 130000, tzinfo=tzutc()),<br/>                       &#x27;Owner&#x27;: {&#x27;DisplayName&#x27;: &#x27;wanghx&#x27;, &#x27;ID&#x27;: &#x27;wanghx&#x27;},<br/>                       &#x27;Size&#x27;: 9,<br/>                       &#x27;StorageClass&#x27;: &#x27;STANDARD&#x27;,<br/>                       &#x27;VersionId&#x27;: &#x27;xv8AaYPLXxaHzuo2gOCK-nppqujRtnD&#x27;},<br/>                      {&#x27;ETag&#x27;: &#x27;&quot;6deb7d5ca68840f07d8e56764c8dc673&quot;&#x27;,<br/>                       &#x27;IsLatest&#x27;: False,<br/>                       &#x27;Key&#x27;: &#x27;testobj&#x27;,<br/>                       &#x27;LastModified&#x27;: datetime.datetime(2022, 5, 26, 2, 35, 34, 39000, tzinfo=tzutc()),<br/>                       &#x27;Owner&#x27;: {&#x27;DisplayName&#x27;: &#x27;wanghx&#x27;, &#x27;ID&#x27;: &#x27;wanghx&#x27;},<br/>                       &#x27;Size&#x27;: 9,<br/>                       &#x27;StorageClass&#x27;: &#x27;STANDARD&#x27;,<br/>                       &#x27;VersionId&#x27;: &#x27;ZTrIKvShJ3.z40lozRYs4WCTYQPF3cB&#x27;},<br/>                      {&#x27;ETag&#x27;: &#x27;&quot;610bd1fcc43e89895ec87162b65226c3&quot;&#x27;,<br/>                       &#x27;IsLatest&#x27;: False,<br/>                       &#x27;Key&#x27;: &#x27;testobj&#x27;,<br/>                       &#x27;LastModified&#x27;: datetime.datetime(2022, 5, 26, 2, 35, 33, 907000, tzinfo=tzutc()),<br/>                       &#x27;Owner&#x27;: {&#x27;DisplayName&#x27;: &#x27;wanghx&#x27;, &#x27;ID&#x27;: &#x27;wanghx&#x27;},<br/>                       &#x27;Size&#x27;: 9,<br/>                       &#x27;StorageClass&#x27;: &#x27;STANDARD&#x27;,<br/>                       &#x27;VersionId&#x27;: &#x27;Yopxs88Ik5lyS4zXyHBJFW8WMFNswLd&#x27;},<br/>                      {&#x27;ETag&#x27;: &#x27;&quot;928cae62314b95527918ee4a2447da01&quot;&#x27;,<br/>                       &#x27;IsLatest&#x27;: False,<br/>                       &#x27;Key&#x27;: &#x27;testobj&#x27;,<br/>                       &#x27;LastModified&#x27;: datetime.datetime(2022, 5, 26, 2, 35, 33, 779000, tzinfo=tzutc()),<br/>                       &#x27;Owner&#x27;: {&#x27;DisplayName&#x27;: &#x27;wanghx&#x27;, &#x27;ID&#x27;: &#x27;wanghx&#x27;},<br/>                       &#x27;Size&#x27;: 9,<br/>                       &#x27;StorageClass&#x27;: &#x27;STANDARD&#x27;,<br/>                       &#x27;VersionId&#x27;: &#x27;gA8gHvl5h0rlT0S95hGSOzCOXLVS12n&#x27;},<br/>                      {&#x27;ETag&#x27;: &#x27;&quot;8e689ba88b92e4020c6508e8a73e4ec1&quot;&#x27;,<br/>                       &#x27;IsLatest&#x27;: False,<br/>                       &#x27;Key&#x27;: &#x27;testobj&#x27;,<br/>                       &#x27;LastModified&#x27;: datetime.datetime(2022, 5, 26, 2, 35, 33, 592000, tzinfo=tzutc()),<br/>                       &#x27;Owner&#x27;: {&#x27;DisplayName&#x27;: &#x27;wanghx&#x27;, &#x27;ID&#x27;: &#x27;wanghx&#x27;},<br/>                       &#x27;Size&#x27;: 9,<br/>                       &#x27;StorageClass&#x27;: &#x27;STANDARD&#x27;,<br/>                       &#x27;VersionId&#x27;: &#x27;f2Pr-lv5VjDrcFwV.tjd6vBqkixby10&#x27;}]}<br/>        &quot;&quot;&quot;<br/>        self.overwrite_suspended_versioning_obj(client, bucket_name, key, version_ids, contents, &#x27;null content 1&#x27;)<br/>        &quot;&quot;&quot;<br/>        {&#x27;EncodingType&#x27;: &#x27;url&#x27;,<br/>         &#x27;IsTruncated&#x27;: False,<br/>         &#x27;KeyMarker&#x27;: &#x27;&#x27;,<br/>         &#x27;MaxKeys&#x27;: 1000,<br/>         &#x27;Name&#x27;: &#x27;ess-ko0a01tu9h1p1rdnyb3fvmhn0-1&#x27;,<br/>         &#x27;Prefix&#x27;: &#x27;&#x27;,<br/>         &#x27;ResponseMetadata&#x27;: {&#x27;HTTPHeaders&#x27;: {&#x27;connection&#x27;: &#x27;Keep-Alive&#x27;,<br/>                                              &#x27;content-type&#x27;: &#x27;application/xml&#x27;,<br/>                                              &#x27;date&#x27;: &#x27;Thu, 26 May 2022 02:35:36 GMT&#x27;,<br/>                                              &#x27;transfer-encoding&#x27;: &#x27;chunked&#x27;,<br/>                                              &#x27;x-amz-request-id&#x27;: &#x27;tx000000000000000023dd9-00628ee777-33a7983-zone-1647582137&#x27;},<br/>                              &#x27;HTTPStatusCode&#x27;: 200,<br/>                              &#x27;HostId&#x27;: &#x27;&#x27;,<br/>                              &#x27;RequestId&#x27;: &#x27;tx000000000000000023dd9-00628ee777-33a7983-zone-1647582137&#x27;,<br/>                              &#x27;RetryAttempts&#x27;: 0},<br/>         &#x27;VersionIdMarker&#x27;: &#x27;&#x27;,<br/>         &#x27;Versions&#x27;: [{&#x27;ETag&#x27;: &#x27;&quot;1a1f650ff56ed3e64b7cd8d54f71356d&quot;&#x27;,<br/>                       &#x27;IsLatest&#x27;: True,<br/>                       &#x27;Key&#x27;: &#x27;testobj&#x27;,<br/>                       &#x27;LastModified&#x27;: datetime.datetime(2022, 5, 26, 2, 35, 35, 876000, tzinfo=tzutc()),<br/>                       &#x27;Owner&#x27;: {&#x27;DisplayName&#x27;: &#x27;wanghx&#x27;, &#x27;ID&#x27;: &#x27;wanghx&#x27;},<br/>                       &#x27;Size&#x27;: 14,<br/>                       &#x27;StorageClass&#x27;: &#x27;STANDARD&#x27;,<br/>                       &#x27;VersionId&#x27;: &#x27;null&#x27;},<br/>                      {&#x27;ETag&#x27;: &#x27;&quot;27ddd45b69e721be1dec90860cb39c5e&quot;&#x27;,<br/>                       &#x27;IsLatest&#x27;: False,<br/>                       &#x27;Key&#x27;: &#x27;testobj&#x27;,<br/>                       &#x27;LastModified&#x27;: datetime.datetime(2022, 5, 26, 2, 35, 34, 130000, tzinfo=tzutc()),<br/>                       &#x27;Owner&#x27;: {&#x27;DisplayName&#x27;: &#x27;wanghx&#x27;, &#x27;ID&#x27;: &#x27;wanghx&#x27;},<br/>                       &#x27;Size&#x27;: 9,<br/>                       &#x27;StorageClass&#x27;: &#x27;STANDARD&#x27;,<br/>                       &#x27;VersionId&#x27;: &#x27;xv8AaYPLXxaHzuo2gOCK-nppqujRtnD&#x27;},<br/>                      {&#x27;ETag&#x27;: &#x27;&quot;6deb7d5ca68840f07d8e56764c8dc673&quot;&#x27;,<br/>                       &#x27;IsLatest&#x27;: False,<br/>                       &#x27;Key&#x27;: &#x27;testobj&#x27;,<br/>                       &#x27;LastModified&#x27;: datetime.datetime(2022, 5, 26, 2, 35, 34, 39000, tzinfo=tzutc()),<br/>                       &#x27;Owner&#x27;: {&#x27;DisplayName&#x27;: &#x27;wanghx&#x27;, &#x27;ID&#x27;: &#x27;wanghx&#x27;},<br/>                       &#x27;Size&#x27;: 9,<br/>                       &#x27;StorageClass&#x27;: &#x27;STANDARD&#x27;,<br/>                       &#x27;VersionId&#x27;: &#x27;ZTrIKvShJ3.z40lozRYs4WCTYQPF3cB&#x27;},<br/>                      {&#x27;ETag&#x27;: &#x27;&quot;610bd1fcc43e89895ec87162b65226c3&quot;&#x27;,<br/>                       &#x27;IsLatest&#x27;: False,<br/>                       &#x27;Key&#x27;: &#x27;testobj&#x27;,<br/>                       &#x27;LastModified&#x27;: datetime.datetime(2022, 5, 26, 2, 35, 33, 907000, tzinfo=tzutc()),<br/>                       &#x27;Owner&#x27;: {&#x27;DisplayName&#x27;: &#x27;wanghx&#x27;, &#x27;ID&#x27;: &#x27;wanghx&#x27;},<br/>                       &#x27;Size&#x27;: 9,<br/>                       &#x27;StorageClass&#x27;: &#x27;STANDARD&#x27;,<br/>                       &#x27;VersionId&#x27;: &#x27;Yopxs88Ik5lyS4zXyHBJFW8WMFNswLd&#x27;},<br/>                      {&#x27;ETag&#x27;: &#x27;&quot;928cae62314b95527918ee4a2447da01&quot;&#x27;,<br/>                       &#x27;IsLatest&#x27;: False,<br/>                       &#x27;Key&#x27;: &#x27;testobj&#x27;,<br/>                       &#x27;LastModified&#x27;: datetime.datetime(2022, 5, 26, 2, 35, 33, 779000, tzinfo=tzutc()),<br/>                       &#x27;Owner&#x27;: {&#x27;DisplayName&#x27;: &#x27;wanghx&#x27;, &#x27;ID&#x27;: &#x27;wanghx&#x27;},<br/>                       &#x27;Size&#x27;: 9,<br/>                       &#x27;StorageClass&#x27;: &#x27;STANDARD&#x27;,<br/>                       &#x27;VersionId&#x27;: &#x27;gA8gHvl5h0rlT0S95hGSOzCOXLVS12n&#x27;},<br/>                      {&#x27;ETag&#x27;: &#x27;&quot;8e689ba88b92e4020c6508e8a73e4ec1&quot;&#x27;,<br/>                       &#x27;IsLatest&#x27;: False,<br/>                       &#x27;Key&#x27;: &#x27;testobj&#x27;,<br/>                       &#x27;LastModified&#x27;: datetime.datetime(2022, 5, 26, 2, 35, 33, 592000, tzinfo=tzutc()),<br/>                       &#x27;Owner&#x27;: {&#x27;DisplayName&#x27;: &#x27;wanghx&#x27;, &#x27;ID&#x27;: &#x27;wanghx&#x27;},<br/>                       &#x27;Size&#x27;: 9,<br/>                       &#x27;StorageClass&#x27;: &#x27;STANDARD&#x27;,<br/>                       &#x27;VersionId&#x27;: &#x27;f2Pr-lv5VjDrcFwV.tjd6vBqkixby10&#x27;}]}<br/>        &quot;&quot;&quot;<br/>        self.overwrite_suspended_versioning_obj(client, bucket_name, key, version_ids, contents, &#x27;null content 2&#x27;)<br/>        &quot;&quot;&quot;<br/>        {&#x27;EncodingType&#x27;: &#x27;url&#x27;,<br/>         &#x27;IsTruncated&#x27;: False,<br/>         &#x27;KeyMarker&#x27;: &#x27;&#x27;,<br/>         &#x27;MaxKeys&#x27;: 1000,<br/>         &#x27;Name&#x27;: &#x27;ess-ko0a01tu9h1p1rdnyb3fvmhn0-1&#x27;,<br/>         &#x27;Prefix&#x27;: &#x27;&#x27;,<br/>         &#x27;ResponseMetadata&#x27;: {&#x27;HTTPHeaders&#x27;: {&#x27;connection&#x27;: &#x27;Keep-Alive&#x27;,<br/>                                              &#x27;content-type&#x27;: &#x27;application/xml&#x27;,<br/>                                              &#x27;date&#x27;: &#x27;Thu, 26 May 2022 02:35:36 GMT&#x27;,<br/>                                              &#x27;transfer-encoding&#x27;: &#x27;chunked&#x27;,<br/>                                              &#x27;x-amz-request-id&#x27;: &#x27;tx000000000000000023ddb-00628ee778-33a7983-zone-1647582137&#x27;},<br/>                              &#x27;HTTPStatusCode&#x27;: 200,<br/>                              &#x27;HostId&#x27;: &#x27;&#x27;,<br/>                              &#x27;RequestId&#x27;: &#x27;tx000000000000000023ddb-00628ee778-33a7983-zone-1647582137&#x27;,<br/>                              &#x27;RetryAttempts&#x27;: 0},<br/>         &#x27;VersionIdMarker&#x27;: &#x27;&#x27;,<br/>         &#x27;Versions&#x27;: [{&#x27;ETag&#x27;: &#x27;&quot;b721f894506e869bdd4e40703fc9ff7d&quot;&#x27;,<br/>                       &#x27;IsLatest&#x27;: True,<br/>                       &#x27;Key&#x27;: &#x27;testobj&#x27;,<br/>                       &#x27;LastModified&#x27;: datetime.datetime(2022, 5, 26, 2, 35, 36, 222000, tzinfo=tzutc()),<br/>                       &#x27;Owner&#x27;: {&#x27;DisplayName&#x27;: &#x27;wanghx&#x27;, &#x27;ID&#x27;: &#x27;wanghx&#x27;},<br/>                       &#x27;Size&#x27;: 14,<br/>                       &#x27;StorageClass&#x27;: &#x27;STANDARD&#x27;,<br/>                       &#x27;VersionId&#x27;: &#x27;null&#x27;},<br/>                      {&#x27;ETag&#x27;: &#x27;&quot;27ddd45b69e721be1dec90860cb39c5e&quot;&#x27;,<br/>                       &#x27;IsLatest&#x27;: False,<br/>                       &#x27;Key&#x27;: &#x27;testobj&#x27;,<br/>                       &#x27;LastModified&#x27;: datetime.datetime(2022, 5, 26, 2, 35, 34, 130000, tzinfo=tzutc()),<br/>                       &#x27;Owner&#x27;: {&#x27;DisplayName&#x27;: &#x27;wanghx&#x27;, &#x27;ID&#x27;: &#x27;wanghx&#x27;},<br/>                       &#x27;Size&#x27;: 9,<br/>                       &#x27;StorageClass&#x27;: &#x27;STANDARD&#x27;,<br/>                       &#x27;VersionId&#x27;: &#x27;xv8AaYPLXxaHzuo2gOCK-nppqujRtnD&#x27;},<br/>                      {&#x27;ETag&#x27;: &#x27;&quot;6deb7d5ca68840f07d8e56764c8dc673&quot;&#x27;,<br/>                       &#x27;IsLatest&#x27;: False,<br/>                       &#x27;Key&#x27;: &#x27;testobj&#x27;,<br/>                       &#x27;LastModified&#x27;: datetime.datetime(2022, 5, 26, 2, 35, 34, 39000, tzinfo=tzutc()),<br/>                       &#x27;Owner&#x27;: {&#x27;DisplayName&#x27;: &#x27;wanghx&#x27;, &#x27;ID&#x27;: &#x27;wanghx&#x27;},<br/>                       &#x27;Size&#x27;: 9,<br/>                       &#x27;StorageClass&#x27;: &#x27;STANDARD&#x27;,<br/>                       &#x27;VersionId&#x27;: &#x27;ZTrIKvShJ3.z40lozRYs4WCTYQPF3cB&#x27;},<br/>                      {&#x27;ETag&#x27;: &#x27;&quot;610bd1fcc43e89895ec87162b65226c3&quot;&#x27;,<br/>                       &#x27;IsLatest&#x27;: False,<br/>                       &#x27;Key&#x27;: &#x27;testobj&#x27;,<br/>                       &#x27;LastModified&#x27;: datetime.datetime(2022, 5, 26, 2, 35, 33, 907000, tzinfo=tzutc()),<br/>                       &#x27;Owner&#x27;: {&#x27;DisplayName&#x27;: &#x27;wanghx&#x27;, &#x27;ID&#x27;: &#x27;wanghx&#x27;},<br/>                       &#x27;Size&#x27;: 9,<br/>                       &#x27;StorageClass&#x27;: &#x27;STANDARD&#x27;,<br/>                       &#x27;VersionId&#x27;: &#x27;Yopxs88Ik5lyS4zXyHBJFW8WMFNswLd&#x27;},<br/>                      {&#x27;ETag&#x27;: &#x27;&quot;928cae62314b95527918ee4a2447da01&quot;&#x27;,<br/>                       &#x27;IsLatest&#x27;: False,<br/>                       &#x27;Key&#x27;: &#x27;testobj&#x27;,<br/>                       &#x27;LastModified&#x27;: datetime.datetime(2022, 5, 26, 2, 35, 33, 779000, tzinfo=tzutc()),<br/>                       &#x27;Owner&#x27;: {&#x27;DisplayName&#x27;: &#x27;wanghx&#x27;, &#x27;ID&#x27;: &#x27;wanghx&#x27;},<br/>                       &#x27;Size&#x27;: 9,<br/>                       &#x27;StorageClass&#x27;: &#x27;STANDARD&#x27;,<br/>                       &#x27;VersionId&#x27;: &#x27;gA8gHvl5h0rlT0S95hGSOzCOXLVS12n&#x27;},<br/>                      {&#x27;ETag&#x27;: &#x27;&quot;8e689ba88b92e4020c6508e8a73e4ec1&quot;&#x27;,<br/>                       &#x27;IsLatest&#x27;: False,<br/>                       &#x27;Key&#x27;: &#x27;testobj&#x27;,<br/>                       &#x27;LastModified&#x27;: datetime.datetime(2022, 5, 26, 2, 35, 33, 592000, tzinfo=tzutc()),<br/>                       &#x27;Owner&#x27;: {&#x27;DisplayName&#x27;: &#x27;wanghx&#x27;, &#x27;ID&#x27;: &#x27;wanghx&#x27;},<br/>                       &#x27;Size&#x27;: 9,<br/>                       &#x27;StorageClass&#x27;: &#x27;STANDARD&#x27;,<br/>                       &#x27;VersionId&#x27;: &#x27;f2Pr-lv5VjDrcFwV.tjd6vBqkixby10&#x27;}]}<br/>        &quot;&quot;&quot;<br/>        self.delete_suspended_versioning_obj(client, bucket_name, key, version_ids, contents)<br/>        &quot;&quot;&quot;<br/>        {&#x27;DeleteMarkers&#x27;: [{&#x27;IsLatest&#x27;: True,<br/>                            &#x27;Key&#x27;: &#x27;testobj&#x27;,<br/>                            &#x27;LastModified&#x27;: datetime.datetime(2022, 5, 26, 2, 35, 36, 500000, tzinfo=tzutc()),<br/>                            &#x27;Owner&#x27;: {&#x27;DisplayName&#x27;: &#x27;wanghx&#x27;, &#x27;ID&#x27;: &#x27;wanghx&#x27;},<br/>                            &#x27;VersionId&#x27;: &#x27;null&#x27;}],<br/>         &#x27;EncodingType&#x27;: &#x27;url&#x27;,<br/>         &#x27;IsTruncated&#x27;: False,<br/>         &#x27;KeyMarker&#x27;: &#x27;&#x27;,<br/>         &#x27;MaxKeys&#x27;: 1000,<br/>         &#x27;Name&#x27;: &#x27;ess-ko0a01tu9h1p1rdnyb3fvmhn0-1&#x27;,<br/>         &#x27;Prefix&#x27;: &#x27;&#x27;,<br/>         &#x27;ResponseMetadata&#x27;: {&#x27;HTTPHeaders&#x27;: {&#x27;connection&#x27;: &#x27;Keep-Alive&#x27;,<br/>                                              &#x27;content-type&#x27;: &#x27;application/xml&#x27;,<br/>                                              &#x27;date&#x27;: &#x27;Thu, 26 May 2022 02:35:36 GMT&#x27;,<br/>                                              &#x27;transfer-encoding&#x27;: &#x27;chunked&#x27;,<br/>                                              &#x27;x-amz-request-id&#x27;: &#x27;tx000000000000000023ddd-00628ee778-33a7983-zone-1647582137&#x27;},<br/>                              &#x27;HTTPStatusCode&#x27;: 200,<br/>                              &#x27;HostId&#x27;: &#x27;&#x27;,<br/>                              &#x27;RequestId&#x27;: &#x27;tx000000000000000023ddd-00628ee778-33a7983-zone-1647582137&#x27;,<br/>                              &#x27;RetryAttempts&#x27;: 0},<br/>         &#x27;VersionIdMarker&#x27;: &#x27;&#x27;,<br/>         &#x27;Versions&#x27;: [{&#x27;ETag&#x27;: &#x27;&quot;27ddd45b69e721be1dec90860cb39c5e&quot;&#x27;,<br/>                       &#x27;IsLatest&#x27;: False,<br/>                       &#x27;Key&#x27;: &#x27;testobj&#x27;,<br/>                       &#x27;LastModified&#x27;: datetime.datetime(2022, 5, 26, 2, 35, 34, 130000, tzinfo=tzutc()),<br/>                       &#x27;Owner&#x27;: {&#x27;DisplayName&#x27;: &#x27;wanghx&#x27;, &#x27;ID&#x27;: &#x27;wanghx&#x27;},<br/>                       &#x27;Size&#x27;: 9,<br/>                       &#x27;StorageClass&#x27;: &#x27;STANDARD&#x27;,<br/>                       &#x27;VersionId&#x27;: &#x27;xv8AaYPLXxaHzuo2gOCK-nppqujRtnD&#x27;},<br/>                      {&#x27;ETag&#x27;: &#x27;&quot;6deb7d5ca68840f07d8e56764c8dc673&quot;&#x27;,<br/>                       &#x27;IsLatest&#x27;: False,<br/>                       &#x27;Key&#x27;: &#x27;testobj&#x27;,<br/>                       &#x27;LastModified&#x27;: datetime.datetime(2022, 5, 26, 2, 35, 34, 39000, tzinfo=tzutc()),<br/>                       &#x27;Owner&#x27;: {&#x27;DisplayName&#x27;: &#x27;wanghx&#x27;, &#x27;ID&#x27;: &#x27;wanghx&#x27;},<br/>                       &#x27;Size&#x27;: 9,<br/>                       &#x27;StorageClass&#x27;: &#x27;STANDARD&#x27;,<br/>                       &#x27;VersionId&#x27;: &#x27;ZTrIKvShJ3.z40lozRYs4WCTYQPF3cB&#x27;},<br/>                      {&#x27;ETag&#x27;: &#x27;&quot;610bd1fcc43e89895ec87162b65226c3&quot;&#x27;,<br/>                       &#x27;IsLatest&#x27;: False,<br/>                       &#x27;Key&#x27;: &#x27;testobj&#x27;,<br/>                       &#x27;LastModified&#x27;: datetime.datetime(2022, 5, 26, 2, 35, 33, 907000, tzinfo=tzutc()),<br/>                       &#x27;Owner&#x27;: {&#x27;DisplayName&#x27;: &#x27;wanghx&#x27;, &#x27;ID&#x27;: &#x27;wanghx&#x27;},<br/>                       &#x27;Size&#x27;: 9,<br/>                       &#x27;StorageClass&#x27;: &#x27;STANDARD&#x27;,<br/>                       &#x27;VersionId&#x27;: &#x27;Yopxs88Ik5lyS4zXyHBJFW8WMFNswLd&#x27;},<br/>                      {&#x27;ETag&#x27;: &#x27;&quot;928cae62314b95527918ee4a2447da01&quot;&#x27;,<br/>                       &#x27;IsLatest&#x27;: False,<br/>                       &#x27;Key&#x27;: &#x27;testobj&#x27;,<br/>                       &#x27;LastModified&#x27;: datetime.datetime(2022, 5, 26, 2, 35, 33, 779000, tzinfo=tzutc()),<br/>                       &#x27;Owner&#x27;: {&#x27;DisplayName&#x27;: &#x27;wanghx&#x27;, &#x27;ID&#x27;: &#x27;wanghx&#x27;},<br/>                       &#x27;Size&#x27;: 9,<br/>                       &#x27;StorageClass&#x27;: &#x27;STANDARD&#x27;,<br/>                       &#x27;VersionId&#x27;: &#x27;gA8gHvl5h0rlT0S95hGSOzCOXLVS12n&#x27;},<br/>                      {&#x27;ETag&#x27;: &#x27;&quot;8e689ba88b92e4020c6508e8a73e4ec1&quot;&#x27;,<br/>                       &#x27;IsLatest&#x27;: False,<br/>                       &#x27;Key&#x27;: &#x27;testobj&#x27;,<br/>                       &#x27;LastModified&#x27;: datetime.datetime(2022, 5, 26, 2, 35, 33, 592000, tzinfo=tzutc()),<br/>                       &#x27;Owner&#x27;: {&#x27;DisplayName&#x27;: &#x27;wanghx&#x27;, &#x27;ID&#x27;: &#x27;wanghx&#x27;},<br/>                       &#x27;Size&#x27;: 9,<br/>                       &#x27;StorageClass&#x27;: &#x27;STANDARD&#x27;,<br/>                       &#x27;VersionId&#x27;: &#x27;f2Pr-lv5VjDrcFwV.tjd6vBqkixby10&#x27;}]}<br/>        &quot;&quot;&quot;<br/>        # 1. overwrite this object which versionId is null, so DeleteMarkers disappeared.<br/>        # 2. VersionId&#x27;s total number is six.<br/>        self.overwrite_suspended_versioning_obj(client, bucket_name, key, version_ids, contents, &#x27;null content 3&#x27;)<br/>        &quot;&quot;&quot;<br/>        {&#x27;EncodingType&#x27;: &#x27;url&#x27;,<br/>         &#x27;IsTruncated&#x27;: False,<br/>         &#x27;KeyMarker&#x27;: &#x27;&#x27;,<br/>         &#x27;MaxKeys&#x27;: 1000,<br/>         &#x27;Name&#x27;: &#x27;ess-ko0a01tu9h1p1rdnyb3fvmhn0-1&#x27;,<br/>         &#x27;Prefix&#x27;: &#x27;&#x27;,<br/>         &#x27;ResponseMetadata&#x27;: {&#x27;HTTPHeaders&#x27;: {&#x27;connection&#x27;: &#x27;Keep-Alive&#x27;,<br/>                                              &#x27;content-type&#x27;: &#x27;application/xml&#x27;,<br/>                                              &#x27;date&#x27;: &#x27;Thu, 26 May 2022 02:35:37 GMT&#x27;,<br/>                                              &#x27;transfer-encoding&#x27;: &#x27;chunked&#x27;,<br/>                                              &#x27;x-amz-request-id&#x27;: &#x27;tx000000000000000023ddf-00628ee779-33a7983-zone-1647582137&#x27;},<br/>                              &#x27;HTTPStatusCode&#x27;: 200,<br/>                              &#x27;HostId&#x27;: &#x27;&#x27;,<br/>                              &#x27;RequestId&#x27;: &#x27;tx000000000000000023ddf-00628ee779-33a7983-zone-1647582137&#x27;,<br/>                              &#x27;RetryAttempts&#x27;: 0},<br/>         &#x27;VersionIdMarker&#x27;: &#x27;&#x27;,<br/>         &#x27;Versions&#x27;: [{&#x27;ETag&#x27;: &#x27;&quot;ed68e721bd04ac967d30315758fb854f&quot;&#x27;,<br/>                       &#x27;IsLatest&#x27;: True,<br/>                       &#x27;Key&#x27;: &#x27;testobj&#x27;,<br/>                       &#x27;LastModified&#x27;: datetime.datetime(2022, 5, 26, 2, 35, 36, 958000, tzinfo=tzutc()),<br/>                       &#x27;Owner&#x27;: {&#x27;DisplayName&#x27;: &#x27;wanghx&#x27;, &#x27;ID&#x27;: &#x27;wanghx&#x27;},<br/>                       &#x27;Size&#x27;: 14,<br/>                       &#x27;StorageClass&#x27;: &#x27;STANDARD&#x27;,<br/>                       &#x27;VersionId&#x27;: &#x27;null&#x27;},<br/>                      {&#x27;ETag&#x27;: &#x27;&quot;27ddd45b69e721be1dec90860cb39c5e&quot;&#x27;,<br/>                       &#x27;IsLatest&#x27;: False,<br/>                       &#x27;Key&#x27;: &#x27;testobj&#x27;,<br/>                       &#x27;LastModified&#x27;: datetime.datetime(2022, 5, 26, 2, 35, 34, 130000, tzinfo=tzutc()),<br/>                       &#x27;Owner&#x27;: {&#x27;DisplayName&#x27;: &#x27;wanghx&#x27;, &#x27;ID&#x27;: &#x27;wanghx&#x27;},<br/>                       &#x27;Size&#x27;: 9,<br/>                       &#x27;StorageClass&#x27;: &#x27;STANDARD&#x27;,<br/>                       &#x27;VersionId&#x27;: &#x27;xv8AaYPLXxaHzuo2gOCK-nppqujRtnD&#x27;},<br/>                      {&#x27;ETag&#x27;: &#x27;&quot;6deb7d5ca68840f07d8e56764c8dc673&quot;&#x27;,<br/>                       &#x27;IsLatest&#x27;: False,<br/>                       &#x27;Key&#x27;: &#x27;testobj&#x27;,<br/>                       &#x27;LastModified&#x27;: datetime.datetime(2022, 5, 26, 2, 35, 34, 39000, tzinfo=tzutc()),<br/>                       &#x27;Owner&#x27;: {&#x27;DisplayName&#x27;: &#x27;wanghx&#x27;, &#x27;ID&#x27;: &#x27;wanghx&#x27;},<br/>                       &#x27;Size&#x27;: 9,<br/>                       &#x27;StorageClass&#x27;: &#x27;STANDARD&#x27;,<br/>                       &#x27;VersionId&#x27;: &#x27;ZTrIKvShJ3.z40lozRYs4WCTYQPF3cB&#x27;},<br/>                      {&#x27;ETag&#x27;: &#x27;&quot;610bd1fcc43e89895ec87162b65226c3&quot;&#x27;,<br/>                       &#x27;IsLatest&#x27;: False,<br/>                       &#x27;Key&#x27;: &#x27;testobj&#x27;,<br/>                       &#x27;LastModified&#x27;: datetime.datetime(2022, 5, 26, 2, 35, 33, 907000, tzinfo=tzutc()),<br/>                       &#x27;Owner&#x27;: {&#x27;DisplayName&#x27;: &#x27;wanghx&#x27;, &#x27;ID&#x27;: &#x27;wanghx&#x27;},<br/>                       &#x27;Size&#x27;: 9,<br/>                       &#x27;StorageClass&#x27;: &#x27;STANDARD&#x27;,<br/>                       &#x27;VersionId&#x27;: &#x27;Yopxs88Ik5lyS4zXyHBJFW8WMFNswLd&#x27;},<br/>                      {&#x27;ETag&#x27;: &#x27;&quot;928cae62314b95527918ee4a2447da01&quot;&#x27;,<br/>                       &#x27;IsLatest&#x27;: False,<br/>                       &#x27;Key&#x27;: &#x27;testobj&#x27;,<br/>                       &#x27;LastModified&#x27;: datetime.datetime(2022, 5, 26, 2, 35, 33, 779000, tzinfo=tzutc()),<br/>                       &#x27;Owner&#x27;: {&#x27;DisplayName&#x27;: &#x27;wanghx&#x27;, &#x27;ID&#x27;: &#x27;wanghx&#x27;},<br/>                       &#x27;Size&#x27;: 9,<br/>                       &#x27;StorageClass&#x27;: &#x27;STANDARD&#x27;,<br/>                       &#x27;VersionId&#x27;: &#x27;gA8gHvl5h0rlT0S95hGSOzCOXLVS12n&#x27;},<br/>                      {&#x27;ETag&#x27;: &#x27;&quot;8e689ba88b92e4020c6508e8a73e4ec1&quot;&#x27;,<br/>                       &#x27;IsLatest&#x27;: False,<br/>                       &#x27;Key&#x27;: &#x27;testobj&#x27;,<br/>                       &#x27;LastModified&#x27;: datetime.datetime(2022, 5, 26, 2, 35, 33, 592000, tzinfo=tzutc()),<br/>                       &#x27;Owner&#x27;: {&#x27;DisplayName&#x27;: &#x27;wanghx&#x27;, &#x27;ID&#x27;: &#x27;wanghx&#x27;},<br/>                       &#x27;Size&#x27;: 9,<br/>                       &#x27;StorageClass&#x27;: &#x27;STANDARD&#x27;,<br/>                       &#x27;VersionId&#x27;: &#x27;f2Pr-lv5VjDrcFwV.tjd6vBqkixby10&#x27;}]}<br/>        &quot;&quot;&quot;<br/>        self.delete_suspended_versioning_obj(client, bucket_name, key, version_ids, contents)<br/>        &quot;&quot;&quot;<br/>        {&#x27;DeleteMarkers&#x27;: [{&#x27;IsLatest&#x27;: True,<br/>                            &#x27;Key&#x27;: &#x27;testobj&#x27;,<br/>                            &#x27;LastModified&#x27;: datetime.datetime(2022, 5, 26, 3, 21, 45, 154000, tzinfo=tzutc()),<br/>                            &#x27;Owner&#x27;: {&#x27;DisplayName&#x27;: &#x27;wanghx&#x27;, &#x27;ID&#x27;: &#x27;wanghx&#x27;},<br/>                            &#x27;VersionId&#x27;: &#x27;null&#x27;}],<br/>         &#x27;EncodingType&#x27;: &#x27;url&#x27;,<br/>         &#x27;IsTruncated&#x27;: False,<br/>         &#x27;KeyMarker&#x27;: &#x27;&#x27;,<br/>         &#x27;MaxKeys&#x27;: 1000,<br/>         &#x27;Name&#x27;: &#x27;ess-0p2spgzh9y90srzfzidnprefm-1&#x27;,<br/>         &#x27;Prefix&#x27;: &#x27;&#x27;,<br/>         &#x27;ResponseMetadata&#x27;: {&#x27;HTTPHeaders&#x27;: {&#x27;connection&#x27;: &#x27;Keep-Alive&#x27;,<br/>                                              &#x27;content-type&#x27;: &#x27;application/xml&#x27;,<br/>                                              &#x27;date&#x27;: &#x27;Thu, 26 May 2022 03:21:45 GMT&#x27;,<br/>                                              &#x27;transfer-encoding&#x27;: &#x27;chunked&#x27;,<br/>                                              &#x27;x-amz-request-id&#x27;: &#x27;tx000000000000000023e9e-00628ef249-33a7983-zone-1647582137&#x27;},<br/>                              &#x27;HTTPStatusCode&#x27;: 200,<br/>                              &#x27;HostId&#x27;: &#x27;&#x27;,<br/>                              &#x27;RequestId&#x27;: &#x27;tx000000000000000023e9e-00628ef249-33a7983-zone-1647582137&#x27;,<br/>                              &#x27;RetryAttempts&#x27;: 0},<br/>         &#x27;VersionIdMarker&#x27;: &#x27;&#x27;,<br/>         &#x27;Versions&#x27;: [{&#x27;ETag&#x27;: &#x27;&quot;27ddd45b69e721be1dec90860cb39c5e&quot;&#x27;,<br/>                       &#x27;IsLatest&#x27;: False,<br/>                       &#x27;Key&#x27;: &#x27;testobj&#x27;,<br/>                       &#x27;LastModified&#x27;: datetime.datetime(2022, 5, 26, 3, 21, 43, 652000, tzinfo=tzutc()),<br/>                       &#x27;Owner&#x27;: {&#x27;DisplayName&#x27;: &#x27;wanghx&#x27;, &#x27;ID&#x27;: &#x27;wanghx&#x27;},<br/>                       &#x27;Size&#x27;: 9,<br/>                       &#x27;StorageClass&#x27;: &#x27;STANDARD&#x27;,<br/>                       &#x27;VersionId&#x27;: &#x27;XNxji2.wyXoLhEddffTLe3-orbZRf2L&#x27;},<br/>                      {&#x27;ETag&#x27;: &#x27;&quot;6deb7d5ca68840f07d8e56764c8dc673&quot;&#x27;,<br/>                       &#x27;IsLatest&#x27;: False,<br/>                       &#x27;Key&#x27;: &#x27;testobj&#x27;,<br/>                       &#x27;LastModified&#x27;: datetime.datetime(2022, 5, 26, 3, 21, 43, 476000, tzinfo=tzutc()),<br/>                       &#x27;Owner&#x27;: {&#x27;DisplayName&#x27;: &#x27;wanghx&#x27;, &#x27;ID&#x27;: &#x27;wanghx&#x27;},<br/>                       &#x27;Size&#x27;: 9,<br/>                       &#x27;StorageClass&#x27;: &#x27;STANDARD&#x27;,<br/>                       &#x27;VersionId&#x27;: &#x27;62so9CM9UcZf2sLTfVNQ15l8F6xwAZ-&#x27;},<br/>                      {&#x27;ETag&#x27;: &#x27;&quot;610bd1fcc43e89895ec87162b65226c3&quot;&#x27;,<br/>                       &#x27;IsLatest&#x27;: False,<br/>                       &#x27;Key&#x27;: &#x27;testobj&#x27;,<br/>                       &#x27;LastModified&#x27;: datetime.datetime(2022, 5, 26, 3, 21, 43, 299000, tzinfo=tzutc()),<br/>                       &#x27;Owner&#x27;: {&#x27;DisplayName&#x27;: &#x27;wanghx&#x27;, &#x27;ID&#x27;: &#x27;wanghx&#x27;},<br/>                       &#x27;Size&#x27;: 9,<br/>                       &#x27;StorageClass&#x27;: &#x27;STANDARD&#x27;,<br/>                       &#x27;VersionId&#x27;: &#x27;G3vMF5GBdFWEaDN4K1EEesRkGuvmn93&#x27;},<br/>                      {&#x27;ETag&#x27;: &#x27;&quot;928cae62314b95527918ee4a2447da01&quot;&#x27;,<br/>                       &#x27;IsLatest&#x27;: False,<br/>                       &#x27;Key&#x27;: &#x27;testobj&#x27;,<br/>                       &#x27;LastModified&#x27;: datetime.datetime(2022, 5, 26, 3, 21, 43, 167000, tzinfo=tzutc()),<br/>                       &#x27;Owner&#x27;: {&#x27;DisplayName&#x27;: &#x27;wanghx&#x27;, &#x27;ID&#x27;: &#x27;wanghx&#x27;},<br/>                       &#x27;Size&#x27;: 9,<br/>                       &#x27;StorageClass&#x27;: &#x27;STANDARD&#x27;,<br/>                       &#x27;VersionId&#x27;: &#x27;XhEx6we4Jy4j5IM3Y2m2v9I05tjTr4O&#x27;},<br/>                      {&#x27;ETag&#x27;: &#x27;&quot;8e689ba88b92e4020c6508e8a73e4ec1&quot;&#x27;,<br/>                       &#x27;IsLatest&#x27;: False,<br/>                       &#x27;Key&#x27;: &#x27;testobj&#x27;,<br/>                       &#x27;LastModified&#x27;: datetime.datetime(2022, 5, 26, 3, 21, 42, 982000, tzinfo=tzutc()),<br/>                       &#x27;Owner&#x27;: {&#x27;DisplayName&#x27;: &#x27;wanghx&#x27;, &#x27;ID&#x27;: &#x27;wanghx&#x27;},<br/>                       &#x27;Size&#x27;: 9,<br/>                       &#x27;StorageClass&#x27;: &#x27;STANDARD&#x27;,<br/>                       &#x27;VersionId&#x27;: &#x27;h-Opi70qx-VrRplaHevcElFLO1tSgkQ&#x27;}]}<br/>        &quot;&quot;&quot;<br/>        # versioning enabled.<br/>        self.check_configure_versioning_retry(client, bucket_name, &quot;Enabled&quot;, &quot;Enabled&quot;)<br/>        # create other three versions.<br/>        (version_ids, contents) = self.create_multiple_versions(client, bucket_name, key, 3, version_ids, contents)<br/>        num_versions += 3  # so num_versions is 8.<br/>        &quot;&quot;&quot;<br/>        {&#x27;DeleteMarkers&#x27;: [{&#x27;IsLatest&#x27;: False,<br/>                            &#x27;Key&#x27;: &#x27;testobj&#x27;,<br/>                            &#x27;LastModified&#x27;: datetime.datetime(2022, 5, 26, 2, 35, 37, 206000, tzinfo=tzutc()),<br/>                            &#x27;Owner&#x27;: {&#x27;DisplayName&#x27;: &#x27;wanghx&#x27;, &#x27;ID&#x27;: &#x27;wanghx&#x27;},<br/>                            &#x27;VersionId&#x27;: &#x27;null&#x27;}],<br/>         &#x27;EncodingType&#x27;: &#x27;url&#x27;,<br/>         &#x27;IsTruncated&#x27;: False,<br/>         &#x27;KeyMarker&#x27;: &#x27;&#x27;,<br/>         &#x27;MaxKeys&#x27;: 1000,<br/>         &#x27;Name&#x27;: &#x27;ess-ko0a01tu9h1p1rdnyb3fvmhn0-1&#x27;,<br/>         &#x27;Prefix&#x27;: &#x27;&#x27;,<br/>         &#x27;ResponseMetadata&#x27;: {&#x27;HTTPHeaders&#x27;: {&#x27;connection&#x27;: &#x27;Keep-Alive&#x27;,<br/>                                              &#x27;content-type&#x27;: &#x27;application/xml&#x27;,<br/>                                              &#x27;date&#x27;: &#x27;Thu, 26 May 2022 02:35:38 GMT&#x27;,<br/>                                              &#x27;transfer-encoding&#x27;: &#x27;chunked&#x27;,<br/>                                              &#x27;x-amz-request-id&#x27;: &#x27;tx000000000000000023def-00628ee77a-33a7983-zone-1647582137&#x27;},<br/>                              &#x27;HTTPStatusCode&#x27;: 200,<br/>                              &#x27;HostId&#x27;: &#x27;&#x27;,<br/>                              &#x27;RequestId&#x27;: &#x27;tx000000000000000023def-00628ee77a-33a7983-zone-1647582137&#x27;,<br/>                              &#x27;RetryAttempts&#x27;: 0},<br/>         &#x27;VersionIdMarker&#x27;: &#x27;&#x27;,<br/>         &#x27;Versions&#x27;: [{&#x27;ETag&#x27;: &#x27;&quot;610bd1fcc43e89895ec87162b65226c3&quot;&#x27;,<br/>                       &#x27;IsLatest&#x27;: True,<br/>                       &#x27;Key&#x27;: &#x27;testobj&#x27;,<br/>                       &#x27;LastModified&#x27;: datetime.datetime(2022, 5, 26, 2, 35, 37, 861000, tzinfo=tzutc()),<br/>                       &#x27;Owner&#x27;: {&#x27;DisplayName&#x27;: &#x27;wanghx&#x27;, &#x27;ID&#x27;: &#x27;wanghx&#x27;},<br/>                       &#x27;Size&#x27;: 9,<br/>                       &#x27;StorageClass&#x27;: &#x27;STANDARD&#x27;,<br/>                       &#x27;VersionId&#x27;: &#x27;eaoFKtZ9nLXOIvxfEbkB5HVkW4lmUQJ&#x27;},<br/>                      {&#x27;ETag&#x27;: &#x27;&quot;928cae62314b95527918ee4a2447da01&quot;&#x27;,<br/>                       &#x27;IsLatest&#x27;: False,<br/>                       &#x27;Key&#x27;: &#x27;testobj&#x27;,<br/>                       &#x27;LastModified&#x27;: datetime.datetime(2022, 5, 26, 2, 35, 37, 743000, tzinfo=tzutc()),<br/>                       &#x27;Owner&#x27;: {&#x27;DisplayName&#x27;: &#x27;wanghx&#x27;, &#x27;ID&#x27;: &#x27;wanghx&#x27;},<br/>                       &#x27;Size&#x27;: 9,<br/>                       &#x27;StorageClass&#x27;: &#x27;STANDARD&#x27;,<br/>                       &#x27;VersionId&#x27;: &#x27;v5PckXSgnzL8ujIaYpgijBg-wkyj0Vc&#x27;},<br/>                      {&#x27;ETag&#x27;: &#x27;&quot;8e689ba88b92e4020c6508e8a73e4ec1&quot;&#x27;,<br/>                       &#x27;IsLatest&#x27;: False,<br/>                       &#x27;Key&#x27;: &#x27;testobj&#x27;,<br/>                       &#x27;LastModified&#x27;: datetime.datetime(2022, 5, 26, 2, 35, 37, 575000, tzinfo=tzutc()),<br/>                       &#x27;Owner&#x27;: {&#x27;DisplayName&#x27;: &#x27;wanghx&#x27;, &#x27;ID&#x27;: &#x27;wanghx&#x27;},<br/>                       &#x27;Size&#x27;: 9,<br/>                       &#x27;StorageClass&#x27;: &#x27;STANDARD&#x27;,<br/>                       &#x27;VersionId&#x27;: &#x27;iCjtn-7N3QtXDYBgIXZqnUfjZU8DRNF&#x27;},<br/>                      {&#x27;ETag&#x27;: &#x27;&quot;27ddd45b69e721be1dec90860cb39c5e&quot;&#x27;,<br/>                       &#x27;IsLatest&#x27;: False,<br/>                       &#x27;Key&#x27;: &#x27;testobj&#x27;,<br/>                       &#x27;LastModified&#x27;: datetime.datetime(2022, 5, 26, 2, 35, 34, 130000, tzinfo=tzutc()),<br/>                       &#x27;Owner&#x27;: {&#x27;DisplayName&#x27;: &#x27;wanghx&#x27;, &#x27;ID&#x27;: &#x27;wanghx&#x27;},<br/>                       &#x27;Size&#x27;: 9,<br/>                       &#x27;StorageClass&#x27;: &#x27;STANDARD&#x27;,<br/>                       &#x27;VersionId&#x27;: &#x27;xv8AaYPLXxaHzuo2gOCK-nppqujRtnD&#x27;},<br/>                      {&#x27;ETag&#x27;: &#x27;&quot;6deb7d5ca68840f07d8e56764c8dc673&quot;&#x27;,<br/>                       &#x27;IsLatest&#x27;: False,<br/>                       &#x27;Key&#x27;: &#x27;testobj&#x27;,<br/>                       &#x27;LastModified&#x27;: datetime.datetime(2022, 5, 26, 2, 35, 34, 39000, tzinfo=tzutc()),<br/>                       &#x27;Owner&#x27;: {&#x27;DisplayName&#x27;: &#x27;wanghx&#x27;, &#x27;ID&#x27;: &#x27;wanghx&#x27;},<br/>                       &#x27;Size&#x27;: 9,<br/>                       &#x27;StorageClass&#x27;: &#x27;STANDARD&#x27;,<br/>                       &#x27;VersionId&#x27;: &#x27;ZTrIKvShJ3.z40lozRYs4WCTYQPF3cB&#x27;},<br/>                      {&#x27;ETag&#x27;: &#x27;&quot;610bd1fcc43e89895ec87162b65226c3&quot;&#x27;,<br/>                       &#x27;IsLatest&#x27;: False,<br/>                       &#x27;Key&#x27;: &#x27;testobj&#x27;,<br/>                       &#x27;LastModified&#x27;: datetime.datetime(2022, 5, 26, 2, 35, 33, 907000, tzinfo=tzutc()),<br/>                       &#x27;Owner&#x27;: {&#x27;DisplayName&#x27;: &#x27;wanghx&#x27;, &#x27;ID&#x27;: &#x27;wanghx&#x27;},<br/>                       &#x27;Size&#x27;: 9,<br/>                       &#x27;StorageClass&#x27;: &#x27;STANDARD&#x27;,<br/>                       &#x27;VersionId&#x27;: &#x27;Yopxs88Ik5lyS4zXyHBJFW8WMFNswLd&#x27;},<br/>                      {&#x27;ETag&#x27;: &#x27;&quot;928cae62314b95527918ee4a2447da01&quot;&#x27;,<br/>                       &#x27;IsLatest&#x27;: False,<br/>                       &#x27;Key&#x27;: &#x27;testobj&#x27;,<br/>                       &#x27;LastModified&#x27;: datetime.datetime(2022, 5, 26, 2, 35, 33, 779000, tzinfo=tzutc()),<br/>                       &#x27;Owner&#x27;: {&#x27;DisplayName&#x27;: &#x27;wanghx&#x27;, &#x27;ID&#x27;: &#x27;wanghx&#x27;},<br/>                       &#x27;Size&#x27;: 9,<br/>                       &#x27;StorageClass&#x27;: &#x27;STANDARD&#x27;,<br/>                       &#x27;VersionId&#x27;: &#x27;gA8gHvl5h0rlT0S95hGSOzCOXLVS12n&#x27;},<br/>                      {&#x27;ETag&#x27;: &#x27;&quot;8e689ba88b92e4020c6508e8a73e4ec1&quot;&#x27;,<br/>                       &#x27;IsLatest&#x27;: False,<br/>                       &#x27;Key&#x27;: &#x27;testobj&#x27;,<br/>                       &#x27;LastModified&#x27;: datetime.datetime(2022, 5, 26, 2, 35, 33, 592000, tzinfo=tzutc()),<br/>                       &#x27;Owner&#x27;: {&#x27;DisplayName&#x27;: &#x27;wanghx&#x27;, &#x27;ID&#x27;: &#x27;wanghx&#x27;},<br/>                       &#x27;Size&#x27;: 9,<br/>                       &#x27;StorageClass&#x27;: &#x27;STANDARD&#x27;,<br/>                       &#x27;VersionId&#x27;: &#x27;f2Pr-lv5VjDrcFwV.tjd6vBqkixby10&#x27;}]}<br/>        &quot;&quot;&quot;<br/>        for idx in range(num_versions):<br/>            # delete all versions, except DeleteMarkers<br/>            self.remove_obj_version(client, bucket_name, key, version_ids, contents, idx)<br/>        &quot;&quot;&quot;<br/>        {&#x27;DeleteMarkers&#x27;: [{&#x27;IsLatest&#x27;: True,<br/>                            &#x27;Key&#x27;: &#x27;testobj&#x27;,<br/>                            &#x27;LastModified&#x27;: datetime.datetime(2022, 5, 26, 2, 35, 37, 206000, tzinfo=tzutc()),<br/>                            &#x27;Owner&#x27;: {&#x27;DisplayName&#x27;: &#x27;wanghx&#x27;, &#x27;ID&#x27;: &#x27;wanghx&#x27;},<br/>                            &#x27;VersionId&#x27;: &#x27;null&#x27;}],<br/>         &#x27;EncodingType&#x27;: &#x27;url&#x27;,<br/>         &#x27;IsTruncated&#x27;: False,<br/>         &#x27;KeyMarker&#x27;: &#x27;&#x27;,<br/>         &#x27;MaxKeys&#x27;: 1000,<br/>         &#x27;Name&#x27;: &#x27;ess-ko0a01tu9h1p1rdnyb3fvmhn0-1&#x27;,<br/>         &#x27;Prefix&#x27;: &#x27;&#x27;,<br/>         &#x27;ResponseMetadata&#x27;: {&#x27;HTTPHeaders&#x27;: {&#x27;connection&#x27;: &#x27;Keep-Alive&#x27;,<br/>                                              &#x27;content-type&#x27;: &#x27;application/xml&#x27;,<br/>                                              &#x27;date&#x27;: &#x27;Thu, 26 May 2022 02:35:44 GMT&#x27;,<br/>                                              &#x27;transfer-encoding&#x27;: &#x27;chunked&#x27;,<br/>                                              &#x27;x-amz-request-id&#x27;: &#x27;tx000000000000000023e23-00628ee780-33a7983-zone-1647582137&#x27;},<br/>                              &#x27;HTTPStatusCode&#x27;: 200,<br/>                              &#x27;HostId&#x27;: &#x27;&#x27;,<br/>                              &#x27;RequestId&#x27;: &#x27;tx000000000000000023e23-00628ee780-33a7983-zone-1647582137&#x27;,<br/>                              &#x27;RetryAttempts&#x27;: 0},<br/>         &#x27;VersionIdMarker&#x27;: &#x27;&#x27;}<br/>        &quot;&quot;&quot;<br/>        self.eq(len(version_ids), 0)<br/>        self.eq(len(version_ids), len(contents))<br/>    <br/>        # ---------------- prepare for teardown ---------------- #<br/>        # 1. enable Versioning<br/>        self.check_configure_versioning_retry(client, bucket_name, &quot;Enabled&quot;, &quot;Enabled&quot;)<br/>    <br/>        # 2. delete DeleteMarker which value is null<br/>        # https://docs.aws.amazon.com/zh_cn/AmazonS3/latest/userguide/ManagingDelMarkers.html<br/>        # 要删除具有 NULL 版本 ID 的删除标记，必须在 DeleteObject 请求中将 NULL 作为版本 ID 传递。<br/>        client.delete_object(Bucket=bucket_name, Key=key, VersionId=&#x27;null&#x27;)<br/>        response = client.list_object_versions(Bucket=bucket_name)<br/>        self.eq((&#x27;Versions&#x27; in response), False)<br/>        &quot;&quot;&quot;<br/>        {&#x27;DeleteMarkers&#x27;: [{&#x27;IsLatest&#x27;: True,<br/>                            &#x27;Key&#x27;: &#x27;testobj&#x27;,<br/>                            &#x27;LastModified&#x27;: datetime.datetime(2022, 5, 26, 3, 32, 10, 12000, tzinfo=tzutc()),<br/>                            &#x27;Owner&#x27;: {&#x27;DisplayName&#x27;: &#x27;wanghx&#x27;, &#x27;ID&#x27;: &#x27;wanghx&#x27;},<br/>                            &#x27;VersionId&#x27;: &#x27;SP19U6flH86mcT6X7cFXh8m2sGPRMxL&#x27;},<br/>                           {&#x27;IsLatest&#x27;: False,<br/>                            &#x27;Key&#x27;: &#x27;testobj&#x27;,<br/>                            &#x27;LastModified&#x27;: datetime.datetime(2022, 5, 26, 3, 32, 3, 875000, tzinfo=tzutc()),<br/>                            &#x27;Owner&#x27;: {&#x27;DisplayName&#x27;: &#x27;wanghx&#x27;, &#x27;ID&#x27;: &#x27;wanghx&#x27;},<br/>                            &#x27;VersionId&#x27;: &#x27;null&#x27;}],<br/>         &#x27;EncodingType&#x27;: &#x27;url&#x27;,<br/>         &#x27;IsTruncated&#x27;: False,<br/>         &#x27;KeyMarker&#x27;: &#x27;&#x27;,<br/>         &#x27;MaxKeys&#x27;: 1000,<br/>         &#x27;Name&#x27;: &#x27;ess-qporxi1n9tbr51fqrxhff7fjr-1&#x27;,<br/>         &#x27;Prefix&#x27;: &#x27;&#x27;,<br/>         &#x27;ResponseMetadata&#x27;: {&#x27;HTTPHeaders&#x27;: {&#x27;connection&#x27;: &#x27;Keep-Alive&#x27;,<br/>                                              &#x27;content-type&#x27;: &#x27;application/xml&#x27;,<br/>                                              &#x27;date&#x27;: &#x27;Thu, 26 May 2022 03:32:10 GMT&#x27;,<br/>                                              &#x27;transfer-encoding&#x27;: &#x27;chunked&#x27;,<br/>                                              &#x27;x-amz-request-id&#x27;: &#x27;tx000000000000000023f58-00628ef4ba-33a7983-zone-1647582137&#x27;},<br/>                              &#x27;HTTPStatusCode&#x27;: 200,<br/>                              &#x27;HostId&#x27;: &#x27;&#x27;,<br/>                              &#x27;RequestId&#x27;: &#x27;tx000000000000000023f58-00628ef4ba-33a7983-zone-1647582137&#x27;,<br/>                              &#x27;RetryAttempts&#x27;: 0},<br/>         &#x27;VersionIdMarker&#x27;: &#x27;&#x27;}<br/>        &quot;&quot;&quot;<br/>    <br/>        # 3. versioning suspended<br/>        self.check_configure_versioning_retry(client, bucket_name, &quot;Suspended&quot;, &quot;Suspended&quot;)<br/>    <br/>        # 4. try to delete the bucket<br/>&gt;       res = client.delete_bucket(Bucket=bucket_name)<br/><br/>tests\test_s3_versioning_v.py:1163: <br/>_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ <br/>C:\Users\sine\.conda\envs\s3tests\lib\site-packages\botocore\client.py:395: in _api_call<br/>    return self._make_api_call(operation_name, kwargs)<br/>_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ <br/><br/>self = &lt;botocore.client.S3 object at 0x000002F18DCE2EC0&gt;, operation_name = &#x27;DeleteBucket&#x27;, api_params = {&#x27;Bucket&#x27;: &#x27;sio-rh5ljc97i22nlst14kdqg11pt-1&#x27;}<br/><br/>    def _make_api_call(self, operation_name, api_params):<br/>        operation_model = self._service_model.operation_model(operation_name)<br/>        service_name = self._service_model.service_name<br/>        history_recorder.record(&#x27;API_CALL&#x27;, {<br/>            &#x27;service&#x27;: service_name,<br/>            &#x27;operation&#x27;: operation_name,<br/>            &#x27;params&#x27;: api_params,<br/>        })<br/>        if operation_model.deprecated:<br/>            logger.debug(&#x27;Warning: %s.%s() is deprecated&#x27;,<br/>                         service_name, operation_name)<br/>        request_context = {<br/>            &#x27;client_region&#x27;: self.meta.region_name,<br/>            &#x27;client_config&#x27;: self.meta.config,<br/>            &#x27;has_streaming_input&#x27;: operation_model.has_streaming_input,<br/>            &#x27;auth_type&#x27;: operation_model.auth_type,<br/>        }<br/>        request_dict = self._convert_to_request_dict(<br/>            api_params, operation_model, context=request_context)<br/>        resolve_checksum_context(request_dict, operation_model, api_params)<br/>    <br/>        service_id = self._service_model.service_id.hyphenize()<br/>        handler, event_response = self.meta.events.emit_until_response(<br/>            &#x27;before-call.{service_id}.{operation_name}&#x27;.format(<br/>                service_id=service_id,<br/>                operation_name=operation_name),<br/>            model=operation_model, params=request_dict,<br/>            request_signer=self._request_signer, context=request_context)<br/>    <br/>        if event_response is not None:<br/>            http, parsed_response = event_response<br/>        else:<br/>            apply_request_checksum(request_dict)<br/>            http, parsed_response = self._make_request(<br/>                operation_model, request_dict, request_context)<br/>    <br/>        self.meta.events.emit(<br/>            &#x27;after-call.{service_id}.{operation_name}&#x27;.format(<br/>                service_id=service_id,<br/>                operation_name=operation_name),<br/>            http_response=http, parsed=parsed_response,<br/>            model=operation_model, context=request_context<br/>        )<br/>    <br/>        if http.status_code &gt;= 300:<br/>            error_code = parsed_response.get(&quot;Error&quot;, {}).get(&quot;Code&quot;)<br/>            error_class = self.exceptions.from_code(error_code)<br/>&gt;           raise error_class(parsed_response, operation_name)<br/><span class="error">E           botocore.exceptions.ClientError: An error occurred (BucketNotEmpty) when calling the DeleteBucket operation: Unknown</span><br/><br/>C:\Users\sine\.conda\envs\s3tests\lib\site-packages\botocore\client.py:725: ClientErrors3cfg_global_unique = Munch({&#x27;default_host&#x27;: &#x27;172.38.30.194&#x27;, &#x27;default_port&#x27;: 7480, &#x27;default_is_secure&#x27;: False, &#x27;ssh_user&#x27;: &#x27;root&#x27;, &#x27;ssh_pas...r&#x27;, &#x27;alt_email&#x27;: &#x27;altuser@example.com&#x27;, &#x27;bucket_prefix&#x27;: &#x27;sio-rh5ljc97i22nlst14kdqg11pt-&#x27;, &#x27;bucket_counter&#x27;: count(2)})<br/><br/>    @pytest.fixture(scope=&quot;session&quot;, autouse=True)<br/>    def setup_and_teardown_package_level(s3cfg_global_unique: Munch) -&gt; None:<br/>        &quot;&quot;&quot;<br/>        This function will be ran only once.<br/>        &quot;&quot;&quot;<br/>        logger.info(&quot; Setup package --- started &quot;)<br/>        client = get_client(s3cfg_global_unique)<br/>        alt_client = get_alt_client(s3cfg_global_unique)<br/>    <br/>        prefix = s3cfg_global_unique.bucket_prefix<br/>        nuke_prefixed_buckets(client=client, prefix=prefix, msg=&quot;main client&quot;)  # perhaps no need.<br/>        nuke_prefixed_buckets(client=alt_client, prefix=prefix, msg=&quot;alt client&quot;)  # perhaps no need.<br/>    <br/>        try:<br/>            client.create_bucket(Bucket=s3cfg_global_unique.glacier_bucket)  # create it first.<br/>        except Exception as e:<br/>            logger.info(&quot;Create glacier bucket failed, msg: &quot;, e)<br/>    <br/>        logger.info(&quot; Setup package --- ended &quot;)<br/>    <br/>        yield<br/>    <br/>        logger.info(&quot; Teardown package --- started &quot;)<br/>    <br/>&gt;       nuke_prefixed_buckets(client=client, prefix=prefix, msg=&quot;main client&quot;)<br/><br/>tests\conftest.py:35: <br/>_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ <br/>tests\__init__.py:227: in nuke_prefixed_buckets<br/>    raise err<br/>tests\__init__.py:218: in nuke_prefixed_buckets<br/>    nuke_bucket(client, bucket_name)<br/>tests\__init__.py:209: in nuke_bucket<br/>    client.delete_bucket(Bucket=bucket)<br/>C:\Users\sine\.conda\envs\s3tests\lib\site-packages\botocore\client.py:395: in _api_call<br/>    return self._make_api_call(operation_name, kwargs)<br/>_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ <br/><br/>self = &lt;botocore.client.S3 object at 0x000002F18C819690&gt;, operation_name = &#x27;DeleteBucket&#x27;, api_params = {&#x27;Bucket&#x27;: &#x27;sio-rh5ljc97i22nlst14kdqg11pt-1&#x27;}<br/><br/>    def _make_api_call(self, operation_name, api_params):<br/>        operation_model = self._service_model.operation_model(operation_name)<br/>        service_name = self._service_model.service_name<br/>        history_recorder.record(&#x27;API_CALL&#x27;, {<br/>            &#x27;service&#x27;: service_name,<br/>            &#x27;operation&#x27;: operation_name,<br/>            &#x27;params&#x27;: api_params,<br/>        })<br/>        if operation_model.deprecated:<br/>            logger.debug(&#x27;Warning: %s.%s() is deprecated&#x27;,<br/>                         service_name, operation_name)<br/>        request_context = {<br/>            &#x27;client_region&#x27;: self.meta.region_name,<br/>            &#x27;client_config&#x27;: self.meta.config,<br/>            &#x27;has_streaming_input&#x27;: operation_model.has_streaming_input,<br/>            &#x27;auth_type&#x27;: operation_model.auth_type,<br/>        }<br/>        request_dict = self._convert_to_request_dict(<br/>            api_params, operation_model, context=request_context)<br/>        resolve_checksum_context(request_dict, operation_model, api_params)<br/>    <br/>        service_id = self._service_model.service_id.hyphenize()<br/>        handler, event_response = self.meta.events.emit_until_response(<br/>            &#x27;before-call.{service_id}.{operation_name}&#x27;.format(<br/>                service_id=service_id,<br/>                operation_name=operation_name),<br/>            model=operation_model, params=request_dict,<br/>            request_signer=self._request_signer, context=request_context)<br/>    <br/>        if event_response is not None:<br/>            http, parsed_response = event_response<br/>        else:<br/>            apply_request_checksum(request_dict)<br/>            http, parsed_response = self._make_request(<br/>                operation_model, request_dict, request_context)<br/>    <br/>        self.meta.events.emit(<br/>            &#x27;after-call.{service_id}.{operation_name}&#x27;.format(<br/>                service_id=service_id,<br/>                operation_name=operation_name),<br/>            http_response=http, parsed=parsed_response,<br/>            model=operation_model, context=request_context<br/>        )<br/>    <br/>        if http.status_code &gt;= 300:<br/>            error_code = parsed_response.get(&quot;Error&quot;, {}).get(&quot;Code&quot;)<br/>            error_class = self.exceptions.from_code(error_code)<br/>&gt;           raise error_class(parsed_response, operation_name)<br/><span class="error">E           botocore.exceptions.ClientError: An error occurred (BucketNotEmpty) when calling the DeleteBucket operation: Unknown</span><br/><br/>C:\Users\sine\.conda\envs\s3tests\lib\site-packages\botocore\client.py:725: ClientError<br/> -----------------------------Captured stdout setup------------------------------ <br/>
+Done with cleanup of buckets in tests: [], main client
+
+Done with cleanup of buckets in tests: [], alt client
+<br/> -------------------------------Captured log setup------------------------------- <br/>2022-08-10/25/22 14:08:44 (conftest.py     :16 ) INFO      Setup package --- started 
+2022-08-10/25/22 14:08:50 (conftest.py     :29 ) INFO      Setup package --- ended<br/> -----------------------------Captured log teardown------------------------------ <br/>2022-09-10/25/22 14:09:03 (conftest.py     :33 ) INFO      Teardown package --- started<br/></div></td></tr></tbody></table></body></html>
